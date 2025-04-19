@@ -40,14 +40,17 @@ export default function TaskGenScreen() {
     setLoading(true);
 
     const data = {
-      description: prdText,
-      days_to_complete: duration.trim() || "2",
-      transcript: transcript.trim(),
-      resource_size: resourceSize.trim(),
+      // description: prdText,
+      // days_to_complete: duration.trim() || "2",
+      // transcript: transcript.trim(),
+      // resource_size: resourceSize.trim(),
+      prd_document: prdText.trim(),
+    transcription: transcript.trim(),
+       num_sprints: duration.trim() || "2",
     };
 
     try {
-      const res = await fetch("/api/get-employees", {
+      const res = await fetch("/api/get-task", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -55,7 +58,8 @@ export default function TaskGenScreen() {
 
       const result = await res.json();
       localStorage.setItem("assigned-tasks", JSON.stringify(result));
-      window.location.href = "/create-tkt";
+      console.log(result)
+      // window.location.href = "/create-tkt";
     } catch (err) {
       console.error("Error while generating sprint:", err);
     } finally {

@@ -1,67 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Hardcoded employee list
 const employees = [
-  { name: 'Alice', skills: ['frontend', 'React', 'TypeScript'] },
-  { name: 'Bob', skills: ['backend', 'Node.js', 'SQL'] },
-  { name: 'Charlie', skills: ['testing', 'Jest', 'QA'] },
-  { name: 'David', skills: ['backend', 'Java', 'Spring Boot'] },
-  { name: 'Eva', skills: ['frontend', 'Vue', 'CSS'] },
-  { name: 'Frank', skills: ['testing', 'Cypress', 'QA', 'Automation'] },
-  { name: 'Grace', skills: ['fullstack', 'React', 'Node.js'] },
-  { name: 'Helen', skills: ['frontend', 'Accessibility', 'UX'] },
+  { name: 'Aarav', skills: ['frontend', 'React', 'JavaScript'] },
+  { name: 'Isha', skills: ['backend', 'Node.js', 'MongoDB'] },
+  { name: 'Rohan', skills: ['testing', 'Selenium', 'Manual Testing'] },
+  { name: 'Priya', skills: ['frontend', 'Angular', 'TypeScript'] },
+  { name: 'Karthik', skills: ['backend', 'Java', 'Spring Boot'] },
+  { name: 'Neha', skills: ['fullstack', 'Vue', 'Express.js'] },
+  { name: 'Aditya', skills: ['frontend', 'Next.js', 'Tailwind CSS'] },
+  { name: 'Sneha', skills: ['QA', 'Jest', 'Cypress'] },
+  { name: 'Rahul', skills: ['devops', 'Docker', 'Kubernetes'] },
+  { name: 'Meera', skills: ['backend', 'Python', 'Django'] },
+  { name: 'Dev', skills: ['testing', 'Postman', 'API Testing'] },
+  { name: 'Anjali', skills: ['frontend', 'Figma', 'Accessibility'] },
+  { name: 'Varun', skills: ['backend', 'Go', 'Microservices'] },
+  { name: 'Tanya', skills: ['fullstack', 'React', 'Node.js'] },
+  { name: 'Vikram', skills: ['frontend', 'Svelte', 'CSS Modules'] },
+  { name: 'Diya', skills: ['testing', 'Automation', 'QA'] },
+  { name: 'Arjun', skills: ['backend', 'Ruby on Rails', 'SQL'] },
+  { name: 'Pooja', skills: ['devops', 'CI/CD', 'Jenkins'] },
+  { name: 'Siddharth', skills: ['fullstack', 'Angular', 'Firebase'] },
+  { name: 'Lavanya', skills: ['frontend', 'UX', 'HTML5'] },
 ];
 
-interface UserStory {
+interface Input {
   category: string;
   user_story: string;
-  story_points: number;
-}
-
-interface RequestInput {
-  user_stories: UserStory[];
-  days_to_complete: number;
-  num_resources: number;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { user_stories, days_to_complete, num_resources }: RequestInput = body;
+    const { category, user_story }: Input = body;
 
     const api_key = process.env.GEMINI_API_KEY;
-
-    if (!user_stories || !days_to_complete || !num_resources || !api_key) {
+    if (!category || !user_story || !api_key) {
       return NextResponse.json({ error: 'Missing input or API key' }, { status: 400 });
     }
-
-    const total_story_points = days_to_complete * num_resources;
 
     const genAI = new GoogleGenerativeAI(api_key);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
     const prompt = `
-You are a project planner. Assign the following user stories to the best-suited employees based on their skills.
-Ensure no employee is assigned more story points than the number of days (${days_to_complete}) available.
+You are an expert team lead.
 
-Return the output as an array in this JSON format:
+Assign the **most suitable employee** from the list below to handle the following user story based on their skills and the story's category.
 
-[
-  {
-    "task": "User Story Description",
-    "category": "frontend | backend | testing",
-    "story_points": X,
-    "employee": "Employee Name",
-    "tech_stack": ["Skill1", "Skill2", ...]
-  }
-]
+### User Story Category:
+"${category}"
 
-USER STORIES:
-${JSON.stringify(user_stories, null, 2)}
+### User Story:
+"${user_story}"
 
-EMPLOYEES:
+### Employees:
 ${JSON.stringify(employees, null, 2)}
+
+### Output format (JSON):
+{
+  "name": "Employee Name",
+  "skills": ["Skill1", "Skill2", ...]
+}
+
+Output only valid JSON, no explanation.
 `;
 
     const result = await model.generateContent(prompt);
@@ -75,6 +76,6 @@ ${JSON.stringify(employees, null, 2)}
     return NextResponse.json(parsed);
   } catch (err: any) {
     console.error('Gemini Error:', err);
-    return NextResponse.json({ error: 'Failed to assign tasks' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to assign employee' }, { status: 500 });
   }
 }
