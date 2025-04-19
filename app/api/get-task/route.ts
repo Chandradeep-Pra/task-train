@@ -5,29 +5,23 @@ interface TaskInput {
   prd_document: string;
   transcription?: string;
   num_sprints: number;
-  num_resources: number;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prd_document, transcription, num_sprints, num_resources }: TaskInput = body;
+    const { prd_document, transcription, num_sprints }: TaskInput = body;
 
     const api_key = process.env.GEMINI_API_KEY;
 
-    if (!prd_document || !num_sprints || !num_resources || !api_key) {
+    if (!prd_document || !num_sprints || !api_key) {
       return NextResponse.json(
-        { error: 'Missing prd_document, num_sprints, num_resources, or API key' },
+        { error: 'Missing prd_document, num_sprints, or API key' },
         { status: 400 }
       );
     }
 
     const sprint_days = 10; // Each sprint = 10 working days (2 weeks)
-    const total_dev_days = sprint_days * num_sprints * num_resources;
-
-    // NEW: 1 developer day = 2 story points
-    const total_story_points = Math.floor(total_dev_days * 2);
-    const sprint_capacity = Math.floor(sprint_days * num_resources * 2);
 
     const genAI = new GoogleGenerativeAI(api_key);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
@@ -39,53 +33,60 @@ You are a senior Agile project manager.
 Break down the given product description into Jira user stories and organize them **by sprint**, in realistic development order from **frontend → backend → testing**.
 
 ### Inputs:
-PRD:
-${prd_document}
+This is the Project Requirement Document document of the project: ${prd_document}
 
-${transcription ? `TRANSCRIPTION:\n${transcription}` : ''}
+${transcription ? `This is the meeting TRANSCRIPTION:\n${transcription}` : ''}
 
 1 Sprint Duration: 2 weeks (10 working days)  
-Total Sprints: ${num_sprints}  
-Developers: ${num_resources}  
-Total Story Point Budget: ${total_story_points}
+2 Total Sprints to complete the project: ${num_sprints}  
+3 You are an experienced task creator and your task is to create frontend, backend, and testing tasks
 
 ### Guidelines:
-- Each sprint = 2 weeks = 10 working days
-- Developers: ${num_resources}
-- Total Sprints: ${num_sprints}
-- Each sprint can have up to ${sprint_capacity} story points
-- Total capacity: ${total_story_points} story points
-- 1 developer day = 2 story points
-- Use only Fibonacci numbers for story points (2, 3, 5, 8, 13), 13 being the task for which it can take 6.5 days and 2 being the task which can be done in 1 days
--Its not that we have to complete all the story points, all the resources must be utilised well and we should carefully gives the story point to tasks
-- Categories: "frontend", "backend", "testing
-- Your task is to efficiently cover all the tasks required to build the product end to end, keeping in mind the story point and resources
-- First give all the tasks of Frontend, followed by Backend, and then Testing.
-
+- Each story must include: category (frontend | backend | testing), User Story
+- Group tasks by sprint (sprint_1, sprint_2, ...)
+- Respect logical order: frontend → backend → testing
+- Fit all the possible tasks within ${num_sprints} sprints
+- Output only JSON
 
 ### Output Format:
 {
   "sprint_1": [
-    { "category": "FRONTEND followed by | BACKEND followed by | TESTING ", "user_story": "....", "story_points": X },
+    { "category": "frontend", "user_story": "..." },
     ...
   ],
   "sprint_2": [
     ...
   ],
- }
 
+  For each sprints can we have all the Frontend Stories first, followed by Backend and Testing
+  ...
+}
 `;
 
     const result = await model.generateContent(prompt);
     let text = result.response.text().trim();
 
-    if (text.toLowerCase().startsWith('```json')) {
-      text = text.slice(7).replace(/```$/, '').trim();
+    // Sanitize output: strip markdown/code blocks
+    if (text.startsWith("```")) {
+      text = text.replace(/```(?:json)?/gi, "").replace(/```$/, "").trim();
     }
 
-    const parsed = JSON.parse(text);
-    return NextResponse.json(parsed);
+    // Fallback: ensure we parse only from the first "{" onward
+    const firstBrace = text.indexOf('{');
+    if (firstBrace > 0) {
+      text = text.slice(firstBrace);
+    }
 
+    // Debug logging (optional)
+    // console.log("Gemini raw output:", text);
+
+    try {
+      const parsed = JSON.parse(text);
+      return NextResponse.json(parsed);
+    } catch (jsonErr) {
+      console.error('JSON Parse Error:', jsonErr);
+      return NextResponse.json({ error: 'Invalid JSON returned by Gemini', raw: text }, { status: 500 });
+    }
   } catch (err: any) {
     console.error('Gemini Error:', err);
     return NextResponse.json(
