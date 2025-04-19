@@ -1,71 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-interface Task {
-  task: string;
-  story_points: number;
-}
-
-interface Employee {
-  name: string;
-  skills: string[];
+interface TaskInput {
+  prd_document: string;       // Product Requirement Document
+  transcription?: string;     // Optional meeting transcript
+  days_to_complete: number;   // Deadline in working days
+  num_resources: number;      // Available developers
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { tasks, employees }: { tasks: Task[]; employees: Employee[] } = body;
+    const { prd_document, transcription, days_to_complete, num_resources }: TaskInput = body;
 
     const api_key = process.env.GEMINI_API_KEY;
 
-    if (!tasks || !employees || !api_key) {
-      return NextResponse.json({ error: 'Missing tasks, employees, or API key' }, { status: 400 });
+    if (!prd_document || !days_to_complete || !num_resources || !api_key) {
+      return NextResponse.json(
+        { error: 'Missing prd_document, days_to_complete, num_resources, or API key' },
+        { status: 400 }
+      );
     }
+
+    const total_available_story_points = days_to_complete * num_resources;
 
     const genAI = new GoogleGenerativeAI(api_key);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
     const prompt = `
-You are a project planner. Assign each of the following tasks to the most suitable employee based on their skills and story points.
+You are a project manager with experience in software development. Based on the PRD (Product Requirement Document) and optionally the meeting transcript, along with the number of available developers and days to complete, generate 10 Jira user stories.
 
-Return the results in this exact JSON format, with one object per task and the following fields:
-- "task": The task name
-- "story_points": The story points for that task
-- "employee": The name of the employee assigned to the task
+- Categorize the stories into: frontend, backend, and testing.
+- Each story must include a clear user story and story points.
+- Story points should always be > 1 and follow Fibonacci sequence (e.g., 2, 3, 5, 8, 13...).
+- Assume 1 story point = 1 day of effort for 1 developer.
+- The total story points MUST NOT exceed ${total_available_story_points} (i.e., ${num_resources} resources × ${days_to_complete} days).
 
-Format output as a flat array of objects:
+Output JSON format:
 
-[
-  {
-    "task": "Task Name",
-    "story_points": X,
-    "employee": "Employee Name"
-  },
-  ...
-]
+{
+  "user_stories": [
+    {
+      "category": "frontend | backend | testing",
+      "user_story": "User Story Description",
+      "story_points": X
+    },
+    ...
+  ]
 }
 
-TASKS:
-${JSON.stringify(tasks, null, 2)}
+PRD DOCUMENT:
+${prd_document}
 
-EMPLOYEES:
-${JSON.stringify(employees, null, 2)}
-    `;
+${transcription ? `TRANSCRIPTION:\n${transcription}` : ''}
+
+Deadline: ${days_to_complete} days  
+Available Developers: ${num_resources}  
+Total Story Points Budget: ${total_available_story_points}
+`;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    let text = result.response.text().trim();
 
-    let cleanedText = text;
-
-    if (cleanedText.toLowerCase().startsWith('```json')) {
-      cleanedText = cleanedText.slice(7).replace(/```$/, '').trim();
+    if (text.toLowerCase().startsWith('```json')) {
+      text = text.slice(7).replace(/```$/, '').trim();
     }
 
-    const parsed = JSON.parse(cleanedText);
+    const parsed = JSON.parse(text);
     return NextResponse.json(parsed);
 
   } catch (err: any) {
     console.error('Gemini Error:', err);
-    return NextResponse.json({ error: 'Failed to generate task assignments using Gemini' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate JIRA user stories' }, { status: 500 });
   }
 }
