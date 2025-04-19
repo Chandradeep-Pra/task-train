@@ -36,24 +36,51 @@ export default function TaskGenScreen() {
     }
   };
 
-  const handleGenerate = async () => {
+//   const handleGenerate = async () => {
+//     setLoading(true);
+
+//     const data = {
+//       description: prdText,
+//       days_to_complete: duration.trim() || "2",
+//       transcript: transcript.trim(),
+//       resource_size: resourceSize.trim(),
+//     };
+
+//     try {
+//       const res = await fetch("/api/get-employees", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(data),
+//       });
+
+//       const result = await res.json();
+//       localStorage.setItem("assigned-tasks", JSON.stringify(result));
+//       window.location.href = "/create-tkt";
+//     } catch (err) {
+//       console.error("Error while generating sprint:", err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+const handleGenerate = async () => {
     setLoading(true);
-
+  
     const data = {
-      description: prdText,
+      prd_document: prdText.trim(),
       days_to_complete: duration.trim() || "2",
-      transcript: transcript.trim(),
-      resource_size: resourceSize.trim(),
+      num_resources: resourceSize.trim(),
     };
-
+  
     try {
-      const res = await fetch("/api/get-employees", {
+      const res = await fetch("/api/get-task", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
+  
       const result = await res.json();
+      console.log(result)
       localStorage.setItem("assigned-tasks", JSON.stringify(result));
       window.location.href = "/create-tkt";
     } catch (err) {
@@ -62,8 +89,8 @@ export default function TaskGenScreen() {
       setLoading(false);
     }
   };
-
-  const isReady = prdText.trim().length > 0;
+    
+const isReady = prdText.trim().length > 0;
 
   return (
     <main className="min-h-screen bg-white px-4 mb-4 py-4 sm:px-6">

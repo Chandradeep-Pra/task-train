@@ -72,6 +72,7 @@ ${JSON.stringify(employees, null, 2)}
     }
 
     const parsed = JSON.parse(text);
+    // console.log("Parsed data",parsed)
     return NextResponse.json(parsed);
   } catch (err: any) {
     console.error('Gemini Error:', err);
