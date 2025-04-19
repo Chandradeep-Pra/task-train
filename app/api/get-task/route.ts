@@ -1,71 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-interface Task {
-  task: string;
-  story_points: number;
-}
-
-interface Employee {
-  name: string;
-  skills: string[];
+interface TaskInput {
+  prd_document: string;
+  transcription?: string;
+  num_sprints: number;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { tasks, employees }: { tasks: Task[]; employees: Employee[] } = body;
+    const { prd_document, transcription, num_sprints }: TaskInput = body;
 
     const api_key = process.env.GEMINI_API_KEY;
 
-    if (!tasks || !employees || !api_key) {
-      return NextResponse.json({ error: 'Missing tasks, employees, or API key' }, { status: 400 });
+    if (!prd_document || !num_sprints || !api_key) {
+      return NextResponse.json(
+        { error: 'Missing prd_document, num_sprints, or API key' },
+        { status: 400 }
+      );
     }
+
+    const sprint_days = 10; // Each sprint = 10 working days (2 weeks)
 
     const genAI = new GoogleGenerativeAI(api_key);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
     const prompt = `
-You are a project planner. Assign each of the following tasks to the most suitable employee based on their skills and story points.
+You are a senior Agile project manager.
 
-Return the results in this exact JSON format, with one object per task and the following fields:
-- "task": The task name
-- "story_points": The story points for that task
-- "employee": The name of the employee assigned to the task
+### Objective:
+Break down the given product description into Jira user stories and organize them **by sprint**, in realistic development order from **frontend → backend → testing**.
 
-Format output as a flat array of objects:
+### Inputs:
+This is the Project Requirement Document document of the project: ${prd_document}
 
-[
-  {
-    "task": "Task Name",
-    "story_points": X,
-    "employee": "Employee Name"
-  },
+${transcription ? `This is the meeting TRANSCRIPTION:\n${transcription}` : ''}
+
+1 Sprint Duration: 2 weeks (10 working days)  
+2 Total Sprints to complete the project: ${num_sprints}  
+3 You are an experienced task creator and your task is to create frontend, backend, and testing tasks
+
+### Guidelines:
+- Each story must include: category (frontend | backend | testing), User Story
+- Group tasks by sprint (sprint_1, sprint_2, ...)
+- Respect logical order: frontend → backend → testing
+- Fit all the possible tasks within ${num_sprints} sprints
+- Output only JSON
+
+### Output Format:
+{
+  "sprint_1": [
+    { "category": "frontend", "user_story": "..." },
+    ...
+  ],
+  "sprint_2": [
+    ...
+  ],
+
+  For each sprints can we have all the Frontend Stories first, followed by Backend and Testing
   ...
-]
 }
-
-TASKS:
-${JSON.stringify(tasks, null, 2)}
-
-EMPLOYEES:
-${JSON.stringify(employees, null, 2)}
-    `;
+`;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    let text = result.response.text().trim();
 
-    let cleanedText = text;
-
-    if (cleanedText.toLowerCase().startsWith('```json')) {
-      cleanedText = cleanedText.slice(7).replace(/```$/, '').trim();
+    // Sanitize output: strip markdown/code blocks
+    if (text.startsWith("```")) {
+      text = text.replace(/```(?:json)?/gi, "").replace(/```$/, "").trim();
     }
 
-    const parsed = JSON.parse(cleanedText);
-    return NextResponse.json(parsed);
+    // Fallback: ensure we parse only from the first "{" onward
+    const firstBrace = text.indexOf('{');
+    if (firstBrace > 0) {
+      text = text.slice(firstBrace);
+    }
 
+    // Debug logging (optional)
+    // console.log("Gemini raw output:", text);
+
+    try {
+      const parsed = JSON.parse(text);
+      return NextResponse.json(parsed);
+    } catch (jsonErr) {
+      console.error('JSON Parse Error:', jsonErr);
+      return NextResponse.json({ error: 'Invalid JSON returned by Gemini', raw: text }, { status: 500 });
+    }
   } catch (err: any) {
     console.error('Gemini Error:', err);
-    return NextResponse.json({ error: 'Failed to generate task assignments using Gemini' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to generate JIRA user stories' },
+      { status: 500 }
+    );
   }
 }
