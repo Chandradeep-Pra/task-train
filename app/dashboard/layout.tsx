@@ -1,8 +1,13 @@
+import Topbar from '@/components/Topbar'
 import React from 'react'
 
-const DashboardLayout = () => {
+const DashboardLayout = ({children}:{children: React.ReactNode}) => {
   return (
-    <div>DashboardLayout</div>
+    <>
+      <main>
+        {children}
+      </main>
+    </>
   )
 }
 
