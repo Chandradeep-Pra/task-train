@@ -7,6 +7,7 @@ import Ticket from "./Ticket";
 type TicketType = {
   category: string;
   user_story: string;
+  id: string;
 };
 
 type SprintProps = {
@@ -38,7 +39,7 @@ const Sprint = ({ sprintName, userStories }: SprintProps) => {
         <div className="space-y-4">
           {userStories.map((ticket, index) => (
             // Pass individual properties of the ticket to the Ticket component
-            <Ticket key={index} category={ticket.category} user_story={ticket.user_story} />
+            <Ticket key={index} category={ticket.category} user_story={ticket.user_story} id={ticket.id} />
           ))}
         </div>
       )}

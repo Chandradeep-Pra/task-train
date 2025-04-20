@@ -73,6 +73,7 @@ Output only valid JSON, no explanation.
     }
 
     const parsed = JSON.parse(text);
+    // console.log("Parsed data",parsed)
     return NextResponse.json(parsed);
   } catch (err: any) {
     console.error('Gemini Error:', err);

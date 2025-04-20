@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 export default function Topbar() {
   return (
@@ -11,16 +12,18 @@ export default function Topbar() {
 
         {/* Left: Zira Branding */}
         <div className="flex items-center gap-3">
+          <Link href="/create-task">
           <div className="relative w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg grid place-items-center text-white font-bold text-sm">
             TT
           </div>
+          </Link>
           <span className="text-lg font-semibold text-zinc-900 tracking-tight">
-            Task<span className="text-blue-500">Train</span>
+            Task<span className="text-blue-500">Track</span>
           </span>
         </div>
 
         {/* Center: Search Command Bar */}
-        <div className="relative w-full max-w-lg mx-6">
+        {/* <div className="relative w-full max-w-lg mx-6">
           <Input
             type="text"
             placeholder="⌘ + K to search anything..."
@@ -29,10 +32,10 @@ export default function Topbar() {
           <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-md shadow-inner">
             ⌘ K
           </div>
-        </div>
+        </div> */}
 
         {/* Right: AI Button + Avatar */}
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           <Button
             className="rounded-full px-4 py-2 bg-gradient-to-tr from-zinc-900 to-zinc-800 text-white shadow-xl hover:from-zinc-800 hover:to-zinc-700 transition-all flex items-center gap-2"
           >
@@ -48,7 +51,7 @@ export default function Topbar() {
               Your Profile
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </header>
   );
