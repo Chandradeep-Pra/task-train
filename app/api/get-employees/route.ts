@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { NextRequest } from 'next/server';
+import { setGlobalDispatcher, ProxyAgent, request } from 'undici';
 
 const employees = [
-  { name: 'Aarav', skills: ['frontend', 'React', 'JavaScript'] },
+  // ... same employee 
+  // { name: 'Aarav', skills: ['frontend', 'React', 'JavaScript'] },
   { name: 'Isha', skills: ['backend', 'Node.js', 'MongoDB'] },
   { name: 'Rohan', skills: ['testing', 'Selenium', 'Manual Testing'] },
   { name: 'Priya', skills: ['frontend', 'Angular', 'TypeScript'] },
@@ -34,13 +35,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { category, user_story }: Input = body;
 
-    const api_key = process.env.GEMINI_API_KEY;
-    if (!category || !user_story || !api_key) {
-      return NextResponse.json({ error: 'Missing input or API key' }, { status: 400 });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!category || !user_story || !apiKey) {
+      return new Response(JSON.stringify({ error: 'Missing input or API key' }), { status: 400 });
     }
-
-    const genAI = new GoogleGenerativeAI(api_key);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
     const prompt = `
 You are an expert team lead.
@@ -65,17 +63,67 @@ ${JSON.stringify(employees, null, 2)}
 Output only valid JSON, no explanation.
 `;
 
-    const result = await model.generateContent(prompt);
-    let text = result.response.text().trim();
+    const bodyData = JSON.stringify({
+      contents: [
+        {
+          parts: [{ text: prompt }],
+        },
+      ],
+    });
 
-    if (text.toLowerCase().startsWith('```json')) {
-      text = text.slice(7).replace(/```$/, '').trim();
+    const { body } = await request(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?alt=sse&key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: bodyData,
+      }
+    );
+
+    const reader = body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') {
+            break;
+          }
+
+          try {
+            const json = JSON.parse(data);
+            const textPart = json.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textPart) {
+              let text = textPart.trim();
+              if (text.startsWith('```json')) {
+                text = text.slice(7).replace(/```$/, '').trim();
+              }
+              const parsed = JSON.parse(text);
+              return new Response(JSON.stringify(parsed), { status: 200 });
+            }
+          } catch (e) {
+            console.error('Failed to parse stream JSON:', e);
+          }
+        }
+      }
     }
 
-    const parsed = JSON.parse(text);
-    return NextResponse.json(parsed);
-  } catch (err: any) {
-    console.error('Gemini Error:', err);
-    return NextResponse.json({ error: 'Failed to assign employee' }, { status: 500 });
+    return new Response(JSON.stringify({ error: 'No valid response from Gemini' }), { status: 500 });
+
+  } catch (err) {
+    console.error('Streaming Gemini Error:', err);
+    return new Response(JSON.stringify({ error: 'Failed to assign employee' }), { status: 500 });
   }
 }

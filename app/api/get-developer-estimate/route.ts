@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { setGlobalDispatcher, ProxyAgent } from 'undici';
+
+// ✅ Enable proxy globally if defined in env
+if (process.env.https_proxy) {
+  const proxyAgent = new ProxyAgent(process.env.https_proxy);
+  setGlobalDispatcher(proxyAgent);
+}
 
 // Define an interface for the expected input
 interface StoryPointInput {
@@ -9,11 +16,9 @@ interface StoryPointInput {
 
 export async function POST(req: NextRequest) {
   try {
-    // Parse the input JSON
     const body = await req.json();
     const { user_story, dev_skills }: StoryPointInput = body;
 
-    // Retrieve the API key from environment variables
     const api_key = process.env.GEMINI_API_KEY;
     
     if (!user_story || !dev_skills || !api_key) {
@@ -23,13 +28,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Instantiate the Google Generative AI client using the API key
+    // Instantiate the Gemini model
     const genAI = new GoogleGenerativeAI(api_key);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
 
-    // Build the prompt for the model; the prompt instructs the model to provide an estimation
-    // of the story points for the provided user story, while taking into account the skills of developers.
-    // The output should be in JSON format.
     const prompt = `
 You are a senior Agile project manager.
 
@@ -53,23 +55,20 @@ User Story: "${user_story}"
 Ensure the response is valid JSON.
 `;
 
-    // Generate output from the model
     const result = await model.generateContent(prompt);
     let text = result.response.text().trim();
 
-    // Sanitize the output: remove markdown/code blocks if the response is wrapped in "```"
+    // Sanitize output if wrapped in markdown
     if (text.startsWith("```")) {
       text = text.replace(/```(?:json)?/gi, "").replace(/```$/, "").trim();
     }
 
-    // Ensure we only parse the response starting from the first "{" character
     const firstBrace = text.indexOf('{');
     if (firstBrace > 0) {
       text = text.slice(firstBrace);
     }
 
     try {
-      // Parse and validate the JSON response from the model
       const parsed = JSON.parse(text);
       return NextResponse.json(parsed);
     } catch (jsonErr) {
