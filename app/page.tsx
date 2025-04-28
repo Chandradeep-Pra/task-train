@@ -10,9 +10,9 @@ import {
   Users,
   FileText,
 } from "lucide-react";
-import { LineShadowText } from "@/components/magicui/line-shadow-text";
 import { HyperText } from "@/components/magicui/hyper-text";
 import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
+import Link from "next/link";
 
 export default function Home() {
   // const { theme } = useTheme();
@@ -34,7 +34,7 @@ export default function Home() {
         
          <HyperText>  Supercharge </HyperText> 
         
-          Your Workflow with TaskTrain
+          Your Workflow with Task<span className="text-indigo-500">Track</span>
         </h1>
         <p className="mt-6 text-xl md:text-2xl text-gray-700 max-w-3xl">
           One platform to convert ideas into structured tasks, assign them smartly, and boost your team velocity with <strong>Gen AI</strong> at the core.
@@ -42,8 +42,10 @@ export default function Home() {
         <Button
           size="lg"
           className="mt-10 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg rounded-full px-10 py-5 shadow-xl"
-        >
+        > <Link href="/create-task">
+
           Get Started
+        </Link>
           <span className="ml-2">
             <ArrowRight className="w-5 h-5" />
           </span>

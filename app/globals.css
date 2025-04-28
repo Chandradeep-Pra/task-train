@@ -144,3 +144,52 @@ body {
 }
 
 
+
+@layer utilities {
+  @keyframes ping-fast {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    75%, 100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ping-medium {
+    0% {
+      transform: scale(1);
+      opacity: 0.5;
+    }
+    75%, 100% {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ping-slow {
+    0% {
+      transform: scale(1);
+      opacity: 0.4;
+    }
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  .animate-ping-fast {
+    animation: ping-fast 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .animate-ping-medium {
+    animation: ping-medium 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .animate-ping-slow {
+    animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+}
+
+
