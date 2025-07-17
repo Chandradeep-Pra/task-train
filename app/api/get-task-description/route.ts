@@ -170,7 +170,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const prompt = `
 You are a senior software project manager. Given the task: "${task}", provide the following:

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     // Instantiate the Google Generative AI client using the API key
     const genAI = new GoogleGenerativeAI(api_key);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Build the prompt for the model; the prompt instructs the model to provide an estimation
     // of the story points for the provided user story, while taking into account the skills of developers.
