@@ -1,78 +1,110 @@
-// app/api/create-jira-issue/route.ts
+// route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-interface JiraIssueInput {
-  summary: string;
-  description: string;
-  storyPoints: number;
-  projectKey: string;
-  issueType?: string;
-  assigneeId?: string;
-}
+const JIRA_BASE_URL = 'https://kaushaluemk.atlassian.net';
+const JIRA_API_EMAIL = process.env.JIRA_EMAIL!;
+const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN!;
+const authHeader = 'Basic ' + Buffer.from(`${JIRA_API_EMAIL}:${JIRA_API_TOKEN}`).toString('base64');
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
     const {
       summary,
       description,
       storyPoints,
-      projectKey="TD",
-      issueType = 'Story',
+      projectKey,
       assigneeId,
-    }: JiraIssueInput = body;
+      sprintName
+    } = await req.json();
 
-    
-    const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
-    const JIRA_EMAIL = process.env.JIRA_EMAIL;
-    const JIRA_DOMAIN = process.env.JIRA_DOMAIN;
-    const STORY_POINT_FIELD_ID = process.env.STORY_POINT_FIELD_ID;
+    // 1. Get board ID for the project
+    const boardsRes = await fetch(`${JIRA_BASE_URL}/rest/agile/1.0/board?projectKeyOrId=${projectKey}`, {
+      headers: { Authorization: authHeader, Accept: 'application/json' }
+    });
+    const boards = await boardsRes.json();
+    const board = boards.values.find((b: any) => b.location.projectKey === projectKey);
 
-
-    if (!JIRA_EMAIL || !JIRA_API_TOKEN || !JIRA_DOMAIN || !STORY_POINT_FIELD_ID) {
-      return NextResponse.json({ error: 'Missing Jira environment variables' }, { status: 500 });
+    if (!board) {
+      return NextResponse.json({ error: `Board for project ${projectKey} not found` }, { status: 404 });
     }
 
-    const url = `https://${JIRA_DOMAIN}/rest/api/2/issue`;
+    // 2. Check if sprint exists
+    const sprintsRes = await fetch(`${JIRA_BASE_URL}/rest/agile/1.0/board/${board.id}/sprint`, {
+      headers: { Authorization: authHeader, Accept: 'application/json' }
+    });
+    const sprintsData = await sprintsRes.json();
+    let sprint = sprintsData.values.find((s: any) => s.name === sprintName);
 
-    const payload: any = {
-      fields: {
-        project: {
-          key: projectKey
+    // 3. If sprint doesn't exist, create it
+    if (!sprint) {
+      const createSprintRes = await fetch(`${JIRA_BASE_URL}/rest/agile/1.0/sprint`, {
+        method: 'POST',
+        headers: {
+          Authorization: authHeader,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
         },
-        summary,
-        description,
-        issuetype: {
-          name: issueType
-        },
-        [STORY_POINT_FIELD_ID]: storyPoints
+        body: JSON.stringify({
+          name: sprintName,
+          originBoardId: board.id
+        })
+      });
+
+      if (!createSprintRes.ok) {
+        const errText = await createSprintRes.text();
+        return NextResponse.json({ error: `Failed to create sprint`, details: errText }, { status: 500 });
       }
-    };
 
-    if (assigneeId) {
-      payload.fields.assignee = { id: assigneeId };
+      sprint = await createSprintRes.json();
     }
 
-    const auth = Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString('base64');
-
-    const response = await fetch(url, {
+    // 4. Create the issue
+    const createIssueRes = await fetch(`${JIRA_BASE_URL}/rest/api/2/issue`, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${auth}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        fields: {
+          project: { key: projectKey },
+          summary,
+          description,
+          issuetype: { name: 'Story' },
+          assignee: { id: assigneeId },
+          customfield_10016: storyPoints // Story Points field
+        }
+      })
     });
 
-    const data = await response.json();
-
-    if (response.status === 201) {
-      return NextResponse.json({ message: 'Issue created successfully', issueKey: data.key });
-    } else {
-      return NextResponse.json({ error: 'Failed to create issue', details: data }, { status: response.status });
+    if (!createIssueRes.ok) {
+      const errText = await createIssueRes.text();
+      return NextResponse.json({ error: 'Failed to create issue', details: errText }, { status: 500 });
     }
-  } catch (err: any) {
-    return NextResponse.json({ error: 'Request failed', details: err.message }, { status: 500 });
+
+    const issue = await createIssueRes.json();
+
+    // 5. Assign issue to sprint
+    const assignSprintRes = await fetch(`${JIRA_BASE_URL}/rest/agile/1.0/sprint/${sprint.id}/issue`, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({
+        issues: [issue.key]
+      })
+    });
+
+    if (!assignSprintRes.ok) {
+      const errText = await assignSprintRes.text();
+      return NextResponse.json({ error: 'Issue created but failed to assign to sprint', details: errText }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Issue created and assigned to sprint', issueKey: issue.key });
+  } catch (error: any) {
+    return NextResponse.json({ error: 'Internal error', details: error.message }, { status: 500 });
   }
 }
