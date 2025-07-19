@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     }: JiraIssueInput = body;
 
     const JIRA_EMAIL = "kaushal.uemk@gmail.com"
-    const JIRA_API_TOKEN = "ATATT3xFfGF05XZeEtrEAU3618pUl_FfnXuqQHFZdVIh45Wrj6qUAcBSAtAJXmvF3a-u6hWnUxqc5DHK6NYuxjpiiAAErhdgA-gQB9yCYNZqyGpZNAW-0kiYtXPyEPIoZ5o5S1M3_LQA84KJm0cxUdadIaiOP-EzL6bnEq551cy5cxOnlEb9KvU=7E1E7525";
+    const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
     const JIRA_DOMAIN =  "kaushaluemk.atlassian.net"
     const STORY_POINT_FIELD_ID = "customfield_10016"
 
