@@ -22,10 +22,12 @@ export async function POST(req: NextRequest) {
       assigneeId,
     }: JiraIssueInput = body;
 
-    const JIRA_EMAIL = "kaushal.uemk@gmail.com"
+    
     const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
-    const JIRA_DOMAIN =  "kaushaluemk.atlassian.net"
-    const STORY_POINT_FIELD_ID = "customfield_10016"
+    const JIRA_EMAIL = process.env.JIRA_EMAIL;
+    const JIRA_DOMAIN = process.env.JIRA_DOMAIN;
+    const STORY_POINT_FIELD_ID = process.env.STORY_POINT_FIELD_ID;
+
 
     if (!JIRA_EMAIL || !JIRA_API_TOKEN || !JIRA_DOMAIN || !STORY_POINT_FIELD_ID) {
       return NextResponse.json({ error: 'Missing Jira environment variables' }, { status: 500 });
