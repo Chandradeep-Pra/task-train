@@ -49,11 +49,11 @@ ${transcription}
       "Personalized fitness recommendations"
     ],
     "timeline": "3 months",
-    "target_audience": "Fitness-focused smartphone users aged 18-40",
     "tech_stack": "React Native, Firebase, Node.js",
-    "challenges": "User data privacy, maintaining real-time sync",
+    "challenges": ["User data privacy, maintaining real-time sync", "App performance optimization],
     "success_metrics": "User retention after 30 days, App Store rating > 4.5"
   },
+  Only the above fields should be included in the output.
 `;
 
     const result = await model.generateContent(prompt);

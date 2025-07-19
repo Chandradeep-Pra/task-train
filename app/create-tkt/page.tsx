@@ -52,7 +52,7 @@ export default function TicketReview() {
       <div className="w-full flex flex-col gap-2 relative">
         <div className="flex items-center gap-4">
         {/* <Button className="absolute right-0" >Estimate Story Point</Button> */}
-        <Button className="absolute right-0" onClick={() => setShowMem(!showMem)}>Assign</Button>
+        <Button className="absolute right-0" onClick={() => setShowMem(!showMem)}>Available Team Members</Button>
         </div>
         
         <div className="mt-10" />
