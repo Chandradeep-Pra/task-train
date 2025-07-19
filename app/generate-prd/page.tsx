@@ -4,14 +4,14 @@ import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import toast, { Toaster } from 'react-hot-toast';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function GeneratePRD() {
+  const [mode, setMode] = useState<'pdf' | 'text'>('pdf');
   const [parsedText, setParsedText] = useState('');
   const [fileName, setFileName] = useState('');
-  const [mode, setMode] = useState<'pdf' | 'text'>('pdf');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -48,7 +48,7 @@ export default function GeneratePRD() {
 
     const toastId = toast.loading('Generating PRD...');
     try {
-      const res = await fetch('http://10.1.1.146:3000/api/get-prd', {
+      const res = await fetch('/api/get-prd', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: parsedText }),
@@ -69,39 +69,39 @@ export default function GeneratePRD() {
         <CardContent className="p-8 space-y-6">
           <h2 className="text-4xl font-bold text-gray-900 tracking-tight">Generate PRD</h2>
 
-          <Tabs defaultValue="pdf" onValueChange={(val) => setMode(val as 'pdf' | 'text')}>
-            <TabsList className="grid w-full grid-cols-2 bg-gray-200">
-              <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
-              <TabsTrigger value="text">Paste Text</TabsTrigger>
-            </TabsList>
+          {/* Toggle between PDF and Text mode */}
+          <ToggleGroup
+            type="single"
+            value={mode}
+            onValueChange={(val) => val && setMode(val as 'pdf' | 'text')}
+            className="mb-4"
+          >
+            <ToggleGroupItem value="pdf">Upload PDF</ToggleGroupItem>
+            <ToggleGroupItem value="text">Text Mode</ToggleGroupItem>
+          </ToggleGroup>
 
-            <TabsContent value="pdf">
-              <div
-                {...getRootProps()}
-                className="border-2 border-dashed border-gray-400 rounded-xl p-6 text-center cursor-pointer bg-white shadow-inner"
-              >
-                <input {...getInputProps()} />
-                {isDragActive ? (
-                  <p className="text-gray-600">Drop the PDF here...</p>
-                ) : parsedText ? (
-                  <p className="text-green-700">✅ {fileName} uploaded successfully!</p>
-                ) : (
-                  <p className="text-gray-600">
-                    Drag & drop a PDF here, or click to select one.
-                  </p>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="text">
-              <Textarea
-                rows={8}
-                placeholder="Paste your meeting notes or requirements here..."
-                value={parsedText}
-                onChange={(e) => setParsedText(e.target.value)}
-              />
-            </TabsContent>
-          </Tabs>
+          {mode === 'pdf' ? (
+            <div
+              {...getRootProps()}
+              className="border-2 border-dashed border-gray-400 rounded-xl p-6 text-center cursor-pointer bg-white shadow-inner"
+            >
+              <input {...getInputProps()} />
+              {isDragActive ? (
+                <p className="text-gray-600">Drop the PDF here...</p>
+              ) : parsedText ? (
+                <p className="text-green-700">✅ {fileName} uploaded successfully!</p>
+              ) : (
+                <p className="text-gray-600">Drag & drop a PDF here, or click to select one.</p>
+              )}
+            </div>
+          ) : (
+            <Textarea
+              className="w-full min-h-[180px]"
+              placeholder="Paste your text here..."
+              value={parsedText}
+              onChange={(e) => setParsedText(e.target.value)}
+            />
+          )}
 
           <Button
             onClick={handleGeneratePRD}
