@@ -59,7 +59,7 @@ ${prd_document}
 ### Output format:
 {
   "estimate": "X", // number of employees as string, or "" if unsure
-  "reason": "Explain the reasoning for this estimate based on the PRD and past examples."
+  "reason": "Explain the reasoning for this estimate based on the PRD and past examples. (should be only in 10 words yet summary of full reasoning)"
 }
 `;
 

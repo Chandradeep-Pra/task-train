@@ -6,6 +6,7 @@ import { Loader2, Sparkle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PRDReview from "@/components/PRDReview";
+import { SparkInputField } from "@/components/SparkInputFiled";
 
 export default function GeneratePRDPage() {
   const [prdText, setPrdText] = useState<any>(null); // full structured PRD object
@@ -13,8 +14,6 @@ export default function GeneratePRDPage() {
   const [resourceSize, setResourceSize] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [showAITeamSize, setShowAITeamSize] = useState(false);
-  const [showAITeamDuration, setShowAITeamDuration] = useState(false);
   const router = useRouter();
 
   // Load PRD data from localStorage
@@ -41,7 +40,7 @@ export default function GeneratePRDPage() {
     const payload = {
       prd_document: JSON.stringify(prdText),
       // transcription: transcript.trim?.() || '',
-      num_sprints: duration.trim() || "2",
+      num_sprints: duration || "2",
     };
 
     try {
@@ -86,58 +85,77 @@ export default function GeneratePRDPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="relative">
-  <div className={`flex justify-between items-center mb-1 ${showAITeamSize ? 'mr-0' : 'mr-16'}`}>
-    <label className="block text-sm font-medium text-zinc-700 mb-1">
-      Duration of Project (Sprints)
-    </label>
+            <SparkInputField
+              label="Duration of Project (Sprints)"
+              value={duration}
+              onChange={setDuration}
+              placeholder="e.g. 2"
+              showButton
+              onAIClick={async () => {
+                try {
+                  // const prdText = localStorage.getItem("prd-text") ?? "";
+                  const response = await fetch("/api/get-ai-sprint-estimate", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      prd_document: JSON.stringify(prdText),
+                    }),
+                  });
 
-    <div
-      className="relative flex items-center group"
-      onMouseEnter={() => setShowAITeamDuration(true)}
-      onMouseLeave={() => setShowAITeamDuration(false)}
-    >
-      <Sparkle
-        size={14}
-        className="cursor-pointer transition-transform duration-300 group-hover:rotate-45"
-      />
-      <span
-        className={`absolute left-4 top-1/2 -translate-y-1/2 bg-zinc-100 text-zinc-600 text-xs px-3 py-1 rounded-full shadow transition-all duration-300 ease-out
-        ${showAITeamDuration ? 'opacity-100 -translate-x-0' : 'opacity-0 -translate-x-3 pointer-events-none'}`}
-      >
-         8
-      </span>
-    </div>
-  </div>
+                  const data = await response.json();
+                  console.log("AI Sprint Estimate Response:", data);
 
-  <Input
-    type="number"
-    min={1}
-    value={duration}
-    onChange={(e) => setDuration(e.target.value)}
-    placeholder="e.g. 2"
-  />
-</div>
+                  return {
+                    value: data.estimate,
+                    reason: data.reason,
+                  };
+                } catch (error) {
+                  console.error("AI sprint estimate error:", error);
+                  return {
+                    value: duration,
+                    reason: "AI estimation failed. Please try again.",
+                  };
+                }
+              }}
+            />
 
+            <SparkInputField
+              label="Team Size (Total Employees)"
+              value={resourceSize}
+              onChange={setResourceSize}
+              placeholder="e.g. 5"
+              showButton
+              onAIClick={async () => {
+                try {
+                  // const prdText = localStorage.getItem("prd-text") ?? "";
+                  const response = await fetch("/api/get-ai-employee-estimate", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      prd_document: JSON.stringify(prdText),
+                    }),
+                  });
 
-            <div>
-              <div className="flex justify-between items-center mb-1 mr-16">
-                <label className="block text-sm font-medium text-zinc-700 mb-1">
-                  Team Size (Total Employees)
-                </label>
-                <Sparkle size={12} />
-              </div>
-              {/* <label className="block text-sm font-medium text-zinc-700 mb-1 bg-red-400">
-                Team Size (Engineers)
-              </label> */}
-              <Input
-                type="number"
-                min={1}
-                value={resourceSize}
-                onChange={(e) => setResourceSize(e.target.value)}
-                placeholder="e.g. 5"
-              />
-            </div>
+                  const data = await response.json();
+                  console.log("AI Employee Estimate Response:", data);
+
+                  return {
+                    value: data.estimate,
+                    reason: data.reason,
+                  };
+                } catch (error) {
+                  console.error("AI employee estimate error:", error);
+                  return {
+                    value: duration,
+                    reason: "AI estimation failed. Please try again.",
+                  };
+                }
+              }}
+            />
           </div>
 
           <div className="text-center">
