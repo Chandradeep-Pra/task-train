@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       summary,
       description,
       storyPoints,
-      projectKey,
+      projectKey="TD",
       issueType = 'Story',
       assigneeId,
     }: JiraIssueInput = body;
