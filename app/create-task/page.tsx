@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Sparkles, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,15 @@ export default function TaskGenScreen() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const savedPrd = localStorage.getItem("generated-prd");
+    if (savedPrd) {
+      setPrdText(savedPrd);
+      setPrdType("text");
+      localStorage.removeItem("generated-prd");
+    }
+  }, []);
+
   const handleFileUpload = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -36,57 +45,24 @@ export default function TaskGenScreen() {
     }
   };
 
-//   const handleGenerate = async () => {
-//     setLoading(true);
-
-//     const data = {
-//       description: prdText,
-//       days_to_complete: duration.trim() || "2",
-//       transcript: transcript.trim(),
-//       resource_size: resourceSize.trim(),
-//     };
-
-//     try {
-//       const res = await fetch("/api/get-employees", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify(data),
-//       });
-
-//       const result = await res.json();
-//       localStorage.setItem("assigned-tasks", JSON.stringify(result));
-//       window.location.href = "/create-tkt";
-//     } catch (err) {
-//       console.error("Error while generating sprint:", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-const handleGenerate = async () => {
+  const handleGenerate = async () => {
     setLoading(true);
-  
+
     const data = {
-      // description: prdText,
-      // days_to_complete: duration.trim() || "2",
-      // transcript: transcript.trim(),
-      // resource_size: resourceSize.trim(),
       prd_document: prdText.trim(),
-    transcription: transcript.trim(),
-       num_sprints: duration.trim() || "2",
+      transcription: transcript.trim(),
+      num_sprints: duration.trim() || "2",
     };
-  
+
     try {
       const res = await fetch("/api/get-task", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-  
+
       const result = await res.json();
-      console.log(result)
       localStorage.setItem("assigned-tasks", JSON.stringify(result));
-      console.log(result)
       window.location.href = "/create-tkt";
     } catch (err) {
       console.error("Error while generating sprint:", err);
@@ -94,8 +70,8 @@ const handleGenerate = async () => {
       setLoading(false);
     }
   };
-    
-const isReady = prdText.trim().length > 0;
+
+  const isReady = prdText.trim().length > 0;
 
   return (
     <main className="min-h-screen bg-white px-4 mb-4 py-4 sm:px-6">
@@ -237,4 +213,5 @@ const isReady = prdText.trim().length > 0;
         </Card>
       </div>
     </main>
-  );}
+  );
+}

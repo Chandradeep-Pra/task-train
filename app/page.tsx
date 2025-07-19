@@ -42,7 +42,7 @@ export default function Home() {
         <Button
           size="lg"
           className="mt-10 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg rounded-full px-10 py-5 shadow-xl"
-        > <Link href="/create-task">
+        > <Link href="/generate-prd">
 
           Get Started
         </Link>
