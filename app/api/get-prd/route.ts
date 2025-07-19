@@ -40,11 +40,20 @@ ${transcription}
 """
 
 ### Output Format (JSON only):
-{
-  "prd_document": "A detailed PRD based on the meeting transcription.",
-  "num_sprints": "X",    // number or empty string
-  "total_employees": "Y" // number or empty string
-}
+"prd_document": {
+    "objective": "Launch a cross-platform fitness app for daily workouts.",
+    "features": [
+      "User registration and login",
+      "Workout tracking with analytics",
+      "Social sharing of progress",
+      "Personalized fitness recommendations"
+    ],
+    "timeline": "3 months",
+    "target_audience": "Fitness-focused smartphone users aged 18-40",
+    "tech_stack": "React Native, Firebase, Node.js",
+    "challenges": "User data privacy, maintaining real-time sync",
+    "success_metrics": "User retention after 30 days, App Store rating > 4.5"
+  },
 `;
 
     const result = await model.generateContent(prompt);
