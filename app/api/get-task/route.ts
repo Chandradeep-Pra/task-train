@@ -10,7 +10,7 @@ interface TaskInput {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prd_document, transcription, num_sprints }: TaskInput = body;
+    const { prd_document,num_sprints }: TaskInput = body;
 
     const api_key = process.env.GEMINI_API_KEY;
 
@@ -34,8 +34,6 @@ Break down the given product description into Jira user stories and organize the
 
 ### Inputs:
 This is the Project Requirement Document document of the project: ${prd_document}
-
-${transcription ? `This is the meeting TRANSCRIPTION:\n${transcription}` : ''}
 
 1 Sprint Duration: 2 weeks (10 working days)  
 2 Total Sprints to complete the project: ${num_sprints}  
