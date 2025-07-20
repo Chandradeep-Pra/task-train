@@ -3,28 +3,185 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Pencil, X, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+interface Employee {
+  name: string;
+  skills: string[];
+}
+
+const categoryStyles: Record<string, string> = {
+  design: 'bg-blue-100 text-blue-700',
+  frontend: 'bg-green-100 text-green-700',
+  backend: 'bg-purple-100 text-purple-700',
+  research: 'bg-yellow-100 text-yellow-700',
+  testing: 'bg-pink-100 text-pink-700',
+  default: 'bg-gray-100 text-gray-700',
+};
+
+const getCategoryStyle = (cat: string) =>
+  categoryStyles[cat.toLowerCase()] || categoryStyles.default;
+
+// ================================
+// Component: UserStorySection
+// ================================
+function UserStorySection({
+  userStory,
+  editingStory,
+  tempStory,
+  setTempStory,
+  setEditingStory,
+  handleSaveField,
+}: any) {
+  return (
+    <section className="max-w-4xl mx-auto mb-8">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-xl font-semibold text-zinc-700">User Story</h2>
+        {!editingStory && (
+          <Button variant="ghost" size="sm" onClick={() => setEditingStory(true)}>
+            <Pencil size={14} className="mr-1" />
+            Edit
+          </Button>
+        )}
+      </div>
+      {editingStory ? (
+        <div className="space-y-2">
+          <Textarea value={tempStory} onChange={(e) => setTempStory(e.target.value)} />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => handleSaveField('story')}>
+              <Check size={14} className="mr-1" /> Save
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { setEditingStory(false); setTempStory(userStory); }}>
+              <X size={14} className="mr-1" /> Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-zinc-800 border-l-4 border-indigo-500 pl-4 text-lg">{userStory}</p>
+      )}
+    </section>
+  );
+}
+
+// ================================
+// Component: AcceptanceCriteriaSection
+// ================================
+function AcceptanceCriteriaSection({
+  editingCriteria,
+  tempCriteria,
+  setTempCriteria,
+  setEditingCriteria,
+  handleSaveField,
+  acceptanceCriteria,
+}: any) {
+  return (
+    <section className="max-w-4xl mx-auto mb-8">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-xl font-semibold text-zinc-700">Acceptance Criteria</h2>
+        {!editingCriteria && (
+          <Button variant="ghost" size="sm" onClick={() => setEditingCriteria(true)}>
+            <Pencil size={14} className="mr-1" />
+            Edit
+          </Button>
+        )}
+      </div>
+      {editingCriteria ? (
+        <div className="space-y-2">
+          <Textarea value={tempCriteria} onChange={(e) => setTempCriteria(e.target.value)} />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => handleSaveField('criteria')}>
+              <Check size={14} className="mr-1" /> Save
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { setEditingCriteria(false); setTempCriteria(acceptanceCriteria || ''); }}>
+              <X size={14} className="mr-1" /> Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-zinc-800 border-l-4 border-amber-500 pl-4 text-lg whitespace-pre-line">{acceptanceCriteria || 'Loading...'}</p>
+      )}
+    </section>
+  );
+}
+
+// ================================
+// Component: AssignedEmployeeSection
+// ================================
+function AssignedEmployeeSection({
+  assignedEmployee,
+  allEmployees,
+  handleManualEmployeeChange,
+}: {
+  assignedEmployee: Employee | null;
+  allEmployees: Employee[];
+  handleManualEmployeeChange: (name: string) => void;
+}) {
+  return (
+    <section className="max-w-4xl mx-auto mb-8">
+      <h2 className="text-xl font-semibold text-zinc-700 mb-2">Assigned Employee</h2>
+      {assignedEmployee ? (
+        <>
+          <p className="text-lg border-l-4 border-green-500 pl-4 mb-2">
+            {assignedEmployee.name} – Skills: {assignedEmployee.skills.join(', ')}
+          </p>
+          <div className="max-w-sm">
+            <Select value={assignedEmployee.name} onValueChange={handleManualEmployeeChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Reassign employee" />
+              </SelectTrigger>
+              <SelectContent>
+                {allEmployees.map((emp) => (
+                  <SelectItem key={emp.name} value={emp.name}>
+                    <div className="flex flex-col justify-start">
+                      <span className="font-medium text-sm">{emp.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {emp.skills.join(', ')}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-zinc-500">No one assigned yet.</p>
+      )}
+    </section>
+  );
+}
+
+// ================================
+// Component: TaskDetailsPage (Main)
+// ================================
 export default function TaskDetailsPage() {
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
   const initialUserStory = searchParams.get('user_story');
+  const sprintName = searchParams.get('sprintName') || 'Sprint 1';
+
+  console.log("Sprint Name:", sprintName);
 
   const [userStory, setUserStory] = useState(initialUserStory || '');
   const [editingStory, setEditingStory] = useState(false);
   const [tempStory, setTempStory] = useState(userStory);
-
   const [acceptanceCriteria, setAcceptanceCriteria] = useState<string | null>(null);
   const [editingCriteria, setEditingCriteria] = useState(false);
   const [tempCriteria, setTempCriteria] = useState('');
-
-  const [assignedEmployee, setAssignedEmployee] = useState<{ name: string; skills: string[] } | null>(null);
-  const [allEmployees, setAllEmployees] = useState<{ name: string; skills: string[] }[]>([]);
-  const [estimateResult, setEstimateResult] = useState<{ estimated_story_points?: number; explanation?: string } | null>(null);
-  const [leadEstimate, setLeadEstimate] = useState<{ final_story_points?: number; explanation?: string } | null>(null);
+  const [assignedEmployee, setAssignedEmployee] = useState<Employee | null>(null);
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [estimateResult, setEstimateResult] = useState<any>(null);
+  const [leadEstimate, setLeadEstimate] = useState<any>(null);
   const [storyPoint, setStoryPoint] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -48,35 +205,22 @@ export default function TaskDetailsPage() {
   }, [initialUserStory]);
 
   useEffect(() => {
-    fetch('/api/get-employees-data')
-      .then(res => res.json())
-      .then(data => setAllEmployees(data.employees))
-      .catch(err => {
-        console.error('Error fetching employee list:', err);
-      });
-  }, []);
-
-  useEffect(() => {
     if (estimateResult?.estimated_story_points && leadEstimate?.final_story_points) {
       const average = (estimateResult.estimated_story_points + leadEstimate.final_story_points) / 2;
       setStoryPoint(average);
 
       const assignedTasks = JSON.parse(localStorage.getItem('assigned-tasks') || '[]');
-      const updatedTasks = assignedTasks.map((task: any) => {
-        if (task.user_story === initialUserStory && task.category === category) {
-          return { ...task, story_point: average };
-        }
-        return task;
-      });
+      const updatedTasks = assignedTasks.map((task: any) =>
+        task.user_story === initialUserStory && task.category === category
+          ? { ...task, story_point: average }
+          : task
+      );
       localStorage.setItem('assigned-tasks', JSON.stringify(updatedTasks));
     }
   }, [estimateResult, leadEstimate]);
 
   const handleAssignClick = async () => {
-    if (!category || !initialUserStory) {
-      toast.error('Missing category or user story.');
-      return;
-    }
+    if (!category || !initialUserStory) return toast.error('Missing category or user story.');
 
     try {
       const response = await toast.promise(
@@ -93,7 +237,9 @@ export default function TaskDetailsPage() {
       );
 
       const result = await response.json();
-      setAssignedEmployee(result);
+      setAssignedEmployee(result[1]);
+      setAllEmployees(result);
+      toast.success(`👤 Assigned to ${result[1].name}`);
     } catch (err) {
       console.error(err);
     }
@@ -101,8 +247,7 @@ export default function TaskDetailsPage() {
 
   const handleEstimateClick = async () => {
     if (!initialUserStory || !assignedEmployee) {
-      toast.error('Missing user story or employee.');
-      return;
+      return toast.error('Missing user story or employee.');
     }
 
     try {
@@ -110,10 +255,7 @@ export default function TaskDetailsPage() {
         fetch('/api/get-developer-estimate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_story: initialUserStory,
-            dev_skills: assignedEmployee.skills,
-          }),
+          body: JSON.stringify({ user_story: initialUserStory, dev_skills: assignedEmployee.skills }),
         }),
         {
           loading: '🔧 Developer estimating...',
@@ -178,17 +320,49 @@ export default function TaskDetailsPage() {
     }
   };
 
-  const categoryStyles: Record<string, string> = {
-    design: 'bg-blue-100 text-blue-700',
-    frontend: 'bg-green-100 text-green-700',
-    backend: 'bg-purple-100 text-purple-700',
-    research: 'bg-yellow-100 text-yellow-700',
-    testing: 'bg-pink-100 text-pink-700',
-    default: 'bg-gray-100 text-gray-700',
-  };
+  const handlePushToJira = async () => {
+  if (!userStory || !acceptanceCriteria || !storyPoint || !assignedEmployee) {
+    return toast.error('❗ Missing required fields to push to Jira.');
+  }
 
-  const getCategoryStyle = (cat: string) =>
-    categoryStyles[cat.toLowerCase()] || categoryStyles.default;
+  try {
+    // console.log("assignedEmployee", assignedEmployee);
+    const res = await toast.promise(
+      fetch('/api/create-jira-ticket', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          summary: userStory,
+          description: acceptanceCriteria,
+          storyPoints: storyPoint,
+          projectKey: 'TD', // You can replace this with a dynamic value if needed
+          assigneeId: assignedEmployee.assigneeId, // Ensure this field is present in your employee data
+          sprintName: `TD ${sprintName}`, // You can make this dynamic as needed
+        }),
+      }),
+      {
+        loading: '📤 Pushing to Jira...',
+        success: '✅ Ticket pushed to Jira!',
+        error: '❌ Failed to push ticket to Jira.',
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.issueKey) {
+      toast.success(`🎫 Jira Ticket Created: ${data.issueKey}`);
+    } else {
+      toast.error(`⚠️ Jira push error: ${data.error || 'Unknown error'}`);
+      console.error(data.details);
+    }
+  } catch (err) {
+    console.error('Push to Jira error:', err);
+    toast.error('🚨 Something went wrong pushing to Jira.');
+  }
+};
+
 
   return (
     <main className="px-8 py-12 bg-white text-zinc-900">
@@ -202,91 +376,30 @@ export default function TaskDetailsPage() {
         </div>
       </div>
 
-      {/* User Story */}
-      <section className="max-w-4xl mx-auto mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-semibold text-zinc-700">User Story</h2>
-          {!editingStory && (
-            <Button variant="ghost" size="sm" onClick={() => setEditingStory(true)}>
-              <Pencil size={14} className="mr-1" />
-              Edit
-            </Button>
-          )}
-        </div>
-        {editingStory ? (
-          <div className="space-y-2">
-            <Textarea value={tempStory} onChange={(e) => setTempStory(e.target.value)} />
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => handleSaveField('story')}>
-                <Check size={14} className="mr-1" /> Save
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => { setEditingStory(false); setTempStory(userStory); }}>
-                <X size={14} className="mr-1" /> Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <p className="text-zinc-800 border-l-4 border-indigo-500 pl-4 text-lg">{userStory}</p>
-        )}
-      </section>
+      <UserStorySection
+        userStory={userStory}
+        editingStory={editingStory}
+        tempStory={tempStory}
+        setTempStory={setTempStory}
+        setEditingStory={setEditingStory}
+        handleSaveField={handleSaveField}
+      />
 
-      {/* Acceptance Criteria */}
-      <section className="max-w-4xl mx-auto mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-semibold text-zinc-700">Acceptance Criteria</h2>
-          {!editingCriteria && (
-            <Button variant="ghost" size="sm" onClick={() => setEditingCriteria(true)}>
-              <Pencil size={14} className="mr-1" />
-              Edit
-            </Button>
-          )}
-        </div>
-        {editingCriteria ? (
-          <div className="space-y-2">
-            <Textarea value={tempCriteria} onChange={(e) => setTempCriteria(e.target.value)} />
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => handleSaveField('criteria')}>
-                <Check size={14} className="mr-1" /> Save
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => { setEditingCriteria(false); setTempCriteria(acceptanceCriteria || ''); }}>
-                <X size={14} className="mr-1" /> Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <p className="text-zinc-800 border-l-4 border-amber-500 pl-4 text-lg whitespace-pre-line">{acceptanceCriteria || 'Loading...'}</p>
-        )}
-      </section>
+      <AcceptanceCriteriaSection
+        editingCriteria={editingCriteria}
+        tempCriteria={tempCriteria}
+        setTempCriteria={setTempCriteria}
+        setEditingCriteria={setEditingCriteria}
+        handleSaveField={handleSaveField}
+        acceptanceCriteria={acceptanceCriteria}
+      />
 
-      {/* Assigned Employee */}
-      <section className="max-w-4xl mx-auto mb-8">
-        <h2 className="text-xl font-semibold text-zinc-700 mb-2">Assigned Employee</h2>
-        {assignedEmployee ? (
-          <>
-            <p className="text-lg border-l-4 border-green-500 pl-4 mb-2">
-              {assignedEmployee.name} – Skills: {assignedEmployee.skills.join(', ')}
-            </p>
-            <div className="max-w-sm">
-              <select
-                value={assignedEmployee.name}
-                onChange={(e) => handleManualEmployeeChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">-- Reassign Employee --</option>
-                {allEmployees.map(emp => (
-                  <option key={emp.name} value={emp.name}>
-                    {emp.name} — {emp.skills.join(', ')}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-zinc-500">No one assigned yet.</p>
-        )}
-      </section>
+      <AssignedEmployeeSection
+        assignedEmployee={assignedEmployee}
+        allEmployees={allEmployees}
+        handleManualEmployeeChange={handleManualEmployeeChange}
+      />
 
-      {/* Developer Estimate */}
       {estimateResult && (
         <section className="max-w-4xl mx-auto mb-8">
           <h2 className="text-xl font-semibold text-zinc-700 mb-2">Developer Estimate</h2>
@@ -295,7 +408,6 @@ export default function TaskDetailsPage() {
         </section>
       )}
 
-      {/* Lead Estimate */}
       {leadEstimate && (
         <section className="max-w-4xl mx-auto mb-8">
           <h2 className="text-xl font-semibold text-zinc-700 mb-2">Lead Estimate</h2>
@@ -304,14 +416,38 @@ export default function TaskDetailsPage() {
         </section>
       )}
 
-      {/* Actions */}
-      <div className="max-w-4xl mx-auto flex justify-end gap-4 mt-10">
-        <Button onClick={handleAssignClick} disabled={loading}>
-          {loading ? 'Assigning...' : 'Auto-Assign'}
-        </Button>
-        <Button onClick={handleEstimateClick} disabled={loading || !assignedEmployee}>
-          Estimate Story Point
-        </Button>
+      <div className="max-w-4xl mx-auto mt-10 space-y-6">
+        {storyPoint !== null && (
+          <div className="flex items-center gap-4">
+            <label className="text-lg font-medium text-zinc-700">Final Story Point:</label>
+            <input
+              type="number"
+              className="w-20 border border-zinc-300 rounded px-2 py-1 text-center text-lg"
+              value={storyPoint}
+              onChange={(e) => setStoryPoint(Number(e.target.value))}
+            />
+          </div>
+        )}
+
+        {storyPoint !== null && (
+          <div className="flex justify-end">
+            <Button
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:brightness-110 shadow-lg"
+              onClick={handlePushToJira}
+            >
+              🚀 Push to Jira
+            </Button>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-4">
+          <Button onClick={handleAssignClick} disabled={loading}>
+            {loading ? 'Assigning...' : 'Auto-Assign'}
+          </Button>
+          <Button onClick={handleEstimateClick} disabled={loading || !assignedEmployee}>
+            Estimate Story Point
+          </Button>
+        </div>
       </div>
     </main>
   );

@@ -17,6 +17,7 @@ type SprintProps = {
 
 const Sprint = ({ sprintName, userStories }: SprintProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  console.log("Sprint name:", sprintName);
 
   return (
     <Card className="border border-zinc-200 bg-white/80 shadow-lg rounded-3xl p-6 space-y-4 transition-all">
@@ -39,7 +40,7 @@ const Sprint = ({ sprintName, userStories }: SprintProps) => {
         <div className="space-y-4">
           {userStories.map((ticket, index) => (
             // Pass individual properties of the ticket to the Ticket component
-            <Ticket key={index} category={ticket.category} user_story={ticket.user_story} id={ticket.id} />
+            <Ticket key={index} category={ticket.category} user_story={ticket.user_story} id={ticket.id} sprintName={sprintName} />
           ))}
         </div>
       )}

@@ -192,7 +192,8 @@ ${JSON.stringify(employees, null, 2)}
   {
     "name": "Employee Name",
     "skills": ["Skill1", "Skill2"],
-    "history": ["Relevant task A", "Relevant task B"]
+    "history": ["Relevant task A", "Relevant task B"],
+    "assigneeId": '712020:a51c1a2d-71bb-4923-8c32-057861b7fff2'
   },
   ...
 ]

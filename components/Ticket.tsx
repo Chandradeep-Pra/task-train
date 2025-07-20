@@ -10,6 +10,7 @@ type TicketProps = {
   category: string;
   user_story: string;
   id: string;
+  sprintName: string;
 };
 
 const categoryColors: Record<string, string> = {
@@ -25,7 +26,7 @@ const getCategoryClass = (cat: string) => {
   return categoryColors[key] || categoryColors["default"];
 };
 
-const Ticket: React.FC<TicketProps> = ({ category, user_story, id }) => {
+const Ticket: React.FC<TicketProps> = ({ category, user_story, id, sprintName }) => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUserStory, setEditedUserStory] = useState(user_story);
@@ -33,7 +34,7 @@ const Ticket: React.FC<TicketProps> = ({ category, user_story, id }) => {
   const handleCardClick = () => {
     if (!isEditing) {
       
-      router.push(`/taskDetails/${id}?category=${category}&user_story=${encodeURIComponent(user_story)}`);
+      router.push(`/taskDetails/${id}?category=${category}&user_story=${encodeURIComponent(user_story)}&sprintName=${encodeURIComponent(sprintName)}`);
     }
   };
 
