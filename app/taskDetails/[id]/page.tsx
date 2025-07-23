@@ -193,12 +193,23 @@ export default function TaskDetailsPage() {
         </p>
       </section>
 
-      <section className="max-w-4xl mx-auto mb-12">
-        <h2 className="text-xl text-zinc-600 font-semibold mb-3">Acceptance Criteria</h2>
-        <p className="text-lg font-medium text-zinc-800 leading-relaxed border-l-4 pl-6 border-amber-500">
-          {acceptanceCriteria || "Generating..."}
-        </p>
-      </section>
+    <section className="max-w-4xl mx-auto mb-12">
+  <h2 className="text-xl text-zinc-600 font-semibold mb-3">Acceptance Criteria</h2>
+  <div
+    className="text-base font-normal text-zinc-800 leading-relaxed border-l-4 pl-6 border-amber-500 space-y-2"
+    dangerouslySetInnerHTML={{
+      __html:
+        acceptanceCriteria
+          ?.split(/\n|\r\n/) // split into lines
+          .filter(line => line.trim()) // remove empty lines
+          .map((line, index) => `${index + 1}. ${line.replace(/^[•*]+\s?/, '')}`) // remove * or • from start and number them
+          .join("<br/><br/>") || "Generating...",
+    }}
+  />
+</section>
+
+
+
 
       {assignedEmployee && (
         <section className="max-w-4xl mx-auto mb-8">
