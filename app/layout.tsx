@@ -18,19 +18,22 @@ export default function RootLayout({
       <body className="antialiased">
         <Topbar />
         <Toaster
-  position="top-right"
-  toastOptions={{
-    duration: 3000,
-    className: 'text-sm font-medium',
-    style: {
-      padding: '12px 16px',
-      borderRadius: '8px',
-      background: '#fff',
-      color: '#333',
-      boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
-    },
-  }}
-/>
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            loading: {
+              duration: Infinity,
+            },
+            className: "text-sm font-medium",
+            style: {
+              padding: "12px 16px",
+              borderRadius: "8px",
+              background: "#fff",
+              color: "#333",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+            },
+          }}
+        />
 
         {children}
       </body>

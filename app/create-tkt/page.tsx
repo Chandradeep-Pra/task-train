@@ -1,76 +1,95 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import Sprint from "@/components/Sprint";
-import TeamMembers from "@/components/TeamMembers";
-
-const teamMembers = [
-  { name: "Alice", role: "Frontend Dev" },
-  { name: "Bob", role: "Backend Dev" },
-  { name: "Charlie", role: "Designer" },
-  { name: "Devika", role: "DevOps" },
-];
-
-type TicketType = {
-  id: string;
-  category: string;
-  user_story: string;
-};
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { EmptySprintState } from "@/components/sprint-workspace/EmptySprintState";
+import { getEstimatedPoints, getTicketCategories, getTicketId, formatSprintName } from "@/components/sprint-workspace/helpers";
+import { SprintHeader } from "@/components/sprint-workspace/SprintHeader";
+import { SprintInsights } from "@/components/sprint-workspace/SprintInsights";
+import { SprintSidebar } from "@/components/sprint-workspace/SprintSidebar";
+import { SprintStats } from "@/components/sprint-workspace/SprintStats";
+import { TicketQueue } from "@/components/sprint-workspace/TicketQueue";
+import type { TicketType } from "@/components/sprint-workspace/types";
 
 export default function TicketReview() {
+  const router = useRouter();
   const [sprints, setSprints] = useState<Record<string, TicketType[]>>({});
-  const [assignments, setAssignments] = useState<Record<string, string[]>>({});
-  const [showMem, setShowMem] = useState(false);
+  const [selectedSprintKey, setSelectedSprintKey] = useState("");
+  const [showTeam, setShowTeam] = useState(false);
 
   useEffect(() => {
     const result = localStorage.getItem("assigned-tasks");
-    if (result) {
+    if (!result) return;
+
+    try {
       const parsedResult = JSON.parse(result);
       setSprints(parsedResult);
+      setSelectedSprintKey(Object.keys(parsedResult)[0] || "");
+    } catch (error) {
+      console.error("Failed to parse assigned tasks:", error);
     }
   }, []);
 
-  // Group sprints into rows of 3
-  const sprintEntries = Object.entries(sprints);
-  const groupedSprints: [string, TicketType[]][][] = [];
+  const sprintEntries = useMemo(() => Object.entries(sprints), [sprints]);
+  const selectedIndex = sprintEntries.findIndex(([key]) => key === selectedSprintKey);
+  const selectedSprint = sprintEntries[selectedIndex];
+  const selectedTickets = selectedSprint?.[1] ?? [];
+  const selectedSprintName = selectedSprint ? formatSprintName(selectedSprint[0], selectedIndex) : "Sprint";
 
-  for (let i = 0; i < sprintEntries.length; i += 3) {
-    groupedSprints.push(sprintEntries.slice(i, i + 3));
+  const totalTickets = sprintEntries.reduce((sum, [, tickets]) => sum + tickets.length, 0);
+  const categories = getTicketCategories(selectedTickets);
+  const estimatedPoints = getEstimatedPoints(selectedTickets);
+
+  const openTicket = (ticket: TicketType, index: number) => {
+    if (!selectedSprint) return;
+
+    const ticketId = getTicketId(selectedSprint[0], index, ticket);
+    const params = new URLSearchParams({
+      category: ticket.category,
+      user_story: ticket.user_story,
+      sprintName: selectedSprintName,
+    });
+
+    router.push(`/taskDetails/${ticketId}?${params.toString()}`);
+  };
+
+  if (!sprintEntries.length) {
+    return <EmptySprintState />;
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-white to-zinc-100 px-6 py-16">
-      <div className="w-full flex flex-col gap-2 relative">
-        <div className="flex items-center gap-4">
-          <Button
-            className="absolute right-0"
-            onClick={() => setShowMem(!showMem)}
-          >
-            Available Team Members
-          </Button>
-        </div>
+    <main className="h-[calc(100vh-65px)] overflow-hidden bg-[var(--tt-shell)] text-[var(--tt-ink)]">
+      <div className="flex h-full w-full flex-col gap-4 overflow-hidden p-4 lg:flex-row">
+        <SprintSidebar
+          sprintEntries={sprintEntries}
+          selectedSprintKey={selectedSprintKey}
+          totalTickets={totalTickets}
+          onSelectSprint={setSelectedSprintKey}
+        />
 
-        <div className="mt-10" />
-
-        <div className="flex w-full gap-4">
-          <div className="w-full flex flex-col gap-6">
-            {groupedSprints.map((sprintGroup, rowIndex) => (
-              <div key={rowIndex} className="flex gap-4 w-full">
-                {sprintGroup.map(([key, tickets], index) => (
-                  <div key={key} className="flex-1 min-w-0">
-                    <Sprint
-                      sprintName={`Sprint ${rowIndex * 3 + index + 1}`}
-                      userStories={tickets}
-                    />
-                  </div>
-                ))}
-              </div>
-            ))}
+        <section className="tt-surface flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border">
+          <div className="border-b border-[var(--tt-border)] bg-[var(--tt-surface-solid)] px-5 py-5 lg:px-7">
+            <SprintHeader
+              sprintName={selectedSprintName}
+              showTeam={showTeam}
+              onToggleTeam={() => setShowTeam((value) => !value)}
+            />
+            <SprintStats
+              ticketCount={selectedTickets.length}
+              categoryCount={categories.length}
+              estimatedPoints={estimatedPoints}
+            />
           </div>
 
-          {showMem && <TeamMembers />}
-        </div>
+          <div className={`grid min-h-0 flex-1 gap-0 ${showTeam ? "xl:grid-cols-[1fr_460px]" : "xl:grid-cols-[1fr_360px]"}`}>
+            <TicketQueue
+              sprintKey={selectedSprint?.[0] || "sprint"}
+              tickets={selectedTickets}
+              onOpenTicket={openTicket}
+            />
+            <SprintInsights categories={categories} showTeam={showTeam} tickets={selectedTickets} />
+          </div>
+        </section>
       </div>
     </main>
   );

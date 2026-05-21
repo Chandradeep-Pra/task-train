@@ -7,17 +7,17 @@ import {
   BrainCircuit,
   Check,
   ChevronRight,
-  ClipboardList,
   FileText,
   GitBranch,
   Layers3,
   LineChart,
-  ShieldCheck,
   Sparkles,
   Users,
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConversionFocusSection } from "@/components/landing/ConversionFocusSection";
+import { FutureVisionSection } from "@/components/landing/FutureVisionSection";
 
 const workflow = [
   {
@@ -54,32 +54,27 @@ const signals = [
   "Jira readiness",
 ];
 
-const useCases = [
-  "Product teams turning calls into delivery plans",
-  "Scrum leads preparing sprint-ready backlogs",
-  "Engineering managers balancing ownership and load",
-];
-
 export default function Home() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f7f8fb] text-[#0a2540]">
-      <section className="relative isolate min-h-[calc(100vh-65px)] px-4 pb-16 pt-12 sm:px-6 lg:px-8">
+      <section className="relative isolate min-h-[calc(100vh-65px)] px-4 pb-16 pt-28 sm:px-6 sm:pt-32 lg:px-8">
         <div className="absolute inset-0 -z-20 bg-[linear-gradient(110deg,#f7f8fb_0%,#eef7f2_42%,#fff7ea_70%,#f7f8fb_100%)]" />
         <div className="absolute inset-x-0 top-0 -z-10 h-[70%] bg-[linear-gradient(135deg,rgba(10,37,64,0.08),rgba(0,180,216,0.08)_42%,rgba(245,158,11,0.10))]" />
 
         <div className="mx-auto flex max-w-7xl flex-col items-center text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#0a2540]/10 bg-white/80 px-4 py-2 text-sm font-medium text-[#425466] shadow-sm">
-            <Sparkles className="h-4 w-4 text-[#00a6a6]" />
-            AI sprint planning for product and engineering teams
-          </div>
-
           <h1 className="max-w-5xl text-balance text-5xl font-semibold leading-[1.02] tracking-normal text-[#0a2540] sm:text-6xl lg:text-7xl">
-            Turn scattered product context into sprint-ready Jira work.
+            Turn scattered product context into sprint-ready Jira work with{" "}
+            <span className="text-[#635bff]">TaskTrack</span>.
           </h1>
 
           <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-[#425466] sm:text-xl">
             TaskTrack transforms PRDs, meeting notes, and rough ideas into structured user stories, estimates, owners, and Jira-ready tickets.
           </p>
+
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#0a2540]/10 bg-white/80 px-4 py-2 text-sm font-medium text-[#425466] shadow-sm">
+            <Sparkles className="h-4 w-4 text-[#00a6a6]" />
+            AI sprint planning for product and engineering teams
+          </div>
 
           <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
             <Button asChild className="h-12 rounded-lg bg-[#635bff] px-6 text-base font-semibold text-white shadow-[0_18px_45px_rgba(99,91,255,0.28)] hover:bg-[#5147f5]">
@@ -220,50 +215,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[#0a2540] px-4 py-16 text-white sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-center">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#7ee7c5]">Conversion focus</p>
-            <h2 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight">One CTA, one job: start the planning run.</h2>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-white/70">
-              The landing page now centers the product’s highest-intent action, reinforces outcomes with proof, and shows a concrete preview of what the AI produces.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button asChild className="h-12 rounded-lg bg-white px-6 text-base font-semibold text-[#0a2540] hover:bg-white/90">
-                <Link href="/generate-prd">
-                  Start from a document
-                  <Zap className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-12 rounded-lg border-white/20 bg-transparent px-6 text-base font-semibold text-white hover:bg-white/10 hover:text-white">
-                <Link href="/dashboard">View dashboard</Link>
-              </Button>
-            </div>
-          </div>
+      <FutureVisionSection />
 
-          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
-            <div className="mb-5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#7ee7c5]/15">
-                  <ShieldCheck className="h-5 w-5 text-[#7ee7c5]" />
-                </div>
-                <div>
-                  <p className="font-semibold">Best fit for</p>
-                  <p className="text-sm text-white/55">Teams that need usable plans fast</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {useCases.map((item) => (
-                <div key={item} className="flex items-start gap-3 rounded-md bg-white/[0.05] p-3 text-sm text-white/78">
-                  <ClipboardList className="mt-0.5 h-4 w-4 shrink-0 text-[#7ee7c5]" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <ConversionFocusSection />
 
       <section className="bg-white px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 border-t border-[#0a2540]/10 pt-12 md:flex-row md:items-center">
