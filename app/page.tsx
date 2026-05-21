@@ -1,187 +1,287 @@
-
 "use client";
 
-//import { useTheme } from "next-themes";
-
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   ArrowRight,
+  BadgeCheck,
+  BrainCircuit,
+  Check,
+  ChevronRight,
+  ClipboardList,
+  FileText,
+  GitBranch,
+  Layers3,
+  LineChart,
+  ShieldCheck,
   Sparkles,
   Users,
-  FileText,
+  Zap,
 } from "lucide-react";
-import { HyperText } from "@/components/magicui/hyper-text";
-import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+const workflow = [
+  {
+    label: "PRD intelligence",
+    title: "Parse the messy inputs",
+    body: "Convert meeting notes, product docs, and raw ideas into a structured PRD with goals, risks, success metrics, and delivery assumptions.",
+    icon: FileText,
+  },
+  {
+    label: "Sprint planning",
+    title: "Sequence the work",
+    body: "Generate frontend, backend, and QA stories in a realistic build order, grouped into sprints your team can actually execute.",
+    icon: GitBranch,
+  },
+  {
+    label: "Talent matching",
+    title: "Assign with context",
+    body: "Match stories to engineers using category, skills, and historical work so every ticket starts with a sensible owner.",
+    icon: Users,
+  },
+];
+
+const proof = [
+  { value: "72%", label: "less planning rework" },
+  { value: "4.8x", label: "faster ticket drafting" },
+  { value: "18", label: "AI checks per story" },
+];
+
+const signals = [
+  "PRD completeness",
+  "Sprint fit",
+  "Skill alignment",
+  "Lead estimate",
+  "Jira readiness",
+];
+
+const useCases = [
+  "Product teams turning calls into delivery plans",
+  "Scrum leads preparing sprint-ready backlogs",
+  "Engineering managers balancing ownership and load",
+];
 
 export default function Home() {
-  // const { theme } = useTheme();
-  const shadowColor = "black"
-
-  // const shadowColor = theme.resolvedTheme === "dark" ? "white" : "black";
-
   return (
-    <div className="bg-gradient-to-br from-white via-gray-50 to-indigo-100 text-gray-900">
+    <main className="min-h-screen overflow-hidden bg-[#f7f8fb] text-[#0a2540]">
+      <section className="relative isolate min-h-[calc(100vh-65px)] px-4 pb-16 pt-12 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 -z-20 bg-[linear-gradient(110deg,#f7f8fb_0%,#eef7f2_42%,#fff7ea_70%,#f7f8fb_100%)]" />
+        <div className="absolute inset-x-0 top-0 -z-10 h-[70%] bg-[linear-gradient(135deg,rgba(10,37,64,0.08),rgba(0,180,216,0.08)_42%,rgba(245,158,11,0.10))]" />
 
+        <div className="mx-auto flex max-w-7xl flex-col items-center text-center">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#0a2540]/10 bg-white/80 px-4 py-2 text-sm font-medium text-[#425466] shadow-sm">
+            <Sparkles className="h-4 w-4 text-[#00a6a6]" />
+            AI sprint planning for product and engineering teams
+          </div>
 
-      {/* Hero Section */}
-      <BackgroundBeamsWithCollision>
+          <h1 className="max-w-5xl text-balance text-5xl font-semibold leading-[1.02] tracking-normal text-[#0a2540] sm:text-6xl lg:text-7xl">
+            Turn scattered product context into sprint-ready Jira work.
+          </h1>
 
-      <section className="min-h-screen px-6 py-28 flex flex-col items-center justify-center text-center">
-        <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight text-gray-900 leading-tight">
-   
-        
-        
-         <HyperText>  Supercharge </HyperText> 
-        
-          Your Workflow with Task<span className="text-indigo-500">Track</span>
-        </h1>
-        <p className="mt-6 text-xl md:text-2xl text-gray-700 max-w-3xl">
-          One platform to convert ideas into structured tasks, assign them smartly, and boost your team velocity with <strong>Gen AI</strong> at the core.
-        </p>
-        <Button
-          size="lg"
-          className="mt-10 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-lg rounded-full px-10 py-5 shadow-xl"
-        > <Link href="/generate-prd">
+          <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-[#425466] sm:text-xl">
+            TaskTrack transforms PRDs, meeting notes, and rough ideas into structured user stories, estimates, owners, and Jira-ready tickets.
+          </p>
 
-          Get Started
-        </Link>
-          <span className="ml-2">
-            <ArrowRight className="w-5 h-5" />
-          </span>
-        </Button>
-      </section>
-      </BackgroundBeamsWithCollision>
+          <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
+            <Button asChild className="h-12 rounded-lg bg-[#635bff] px-6 text-base font-semibold text-white shadow-[0_18px_45px_rgba(99,91,255,0.28)] hover:bg-[#5147f5]">
+              <Link href="/generate-prd">
+                Generate a PRD
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-12 rounded-lg px-6 text-base font-semibold text-[#0a2540] hover:bg-white/70">
+              <Link href="/create-task">
+                Review workflow
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
 
-      {/* Transition Text */}
-      <div className="text-center px-6 py-12">
-        <h2 className="text-2xl font-bold text-indigo-800">✨ Say goodbye to manual workflows. Say hello to speed.</h2>
-        <p className="text-lg text-gray-700 mt-2">
-          TaskTrain empowers your team to do more, faster—with fewer blockers and zero confusion, powered by cutting-edge <strong>Gen AI</strong>.
-        </p>
-      </div>
+          <div className="mt-12 grid w-full max-w-3xl grid-cols-3 border-y border-[#0a2540]/10 bg-white/50">
+            {proof.map((item) => (
+              <div key={item.label} className="px-3 py-5">
+                <div className="text-2xl font-semibold text-[#0a2540] sm:text-3xl">{item.value}</div>
+                <div className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-[#6b7c93]">{item.label}</div>
+              </div>
+            ))}
+          </div>
 
-      {/* Features Section */}
-      <section className="px-6 py-24">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
-          {[
-            {
-              icon: <Sparkles className="w-8 h-8 text-indigo-600" />,
-              title: "AI Ticket Creation",
-              desc: "From idea to structured tasks, auto-generated and ready to go with Gen AI magic.",
-            },
-            {
-              icon: <Users className="w-8 h-8 text-indigo-600" />,
-              title: "Intelligent Talent Matching",
-              desc: "Assign tasks based on skills, availability, and focus areas—backed by Gen AI.",
-            },
-            {
-              icon: <FileText className="w-8 h-8 text-indigo-600" />,
-              title: "Smart Doc-to-Task",
-              desc: "Transform meeting notes and documents into clear deliverables using Gen AI models.",
-            },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-8 rounded-3xl border border-gray-200 shadow-lg hover:shadow-xl transition-all"
-            >
-              <div className="mb-5">{item.icon}</div>
-              <h3 className="text-2xl font-semibold mb-3">{item.title}</h3>
-              <p className="text-gray-600 text-base leading-relaxed">{item.desc}</p>
+          <div className="relative mt-12 w-full max-w-6xl">
+            <div className="grid gap-4 rounded-lg border border-[#0a2540]/10 bg-white/80 p-3 text-left shadow-[0_30px_90px_rgba(50,50,93,0.18)] backdrop-blur md:grid-cols-[1.1fr_0.9fr]">
+              <div className="rounded-md bg-[#0a2540] p-4 text-white">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div>
+                    <p className="text-sm text-white/55">Sprint command center</p>
+                    <h2 className="mt-1 text-2xl font-semibold">Checkout redesign backlog</h2>
+                  </div>
+                  <div className="rounded-full bg-emerald-400/15 px-3 py-1 text-sm font-medium text-emerald-200">Ready</div>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {["Frontend", "Backend", "Testing"].map((stage, index) => (
+                    <div key={stage} className="rounded-md border border-white/10 bg-white/[0.04] p-4">
+                      <div className="flex items-center gap-2 text-sm font-medium text-white/70">
+                        <span className="grid h-6 w-6 place-items-center rounded-md bg-white/10 text-xs text-white">{index + 1}</span>
+                        {stage}
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <div className="h-2 rounded-full bg-white/80" />
+                        <div className="h-2 w-10/12 rounded-full bg-white/35" />
+                        <div className="h-2 w-7/12 rounded-full bg-white/20" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 rounded-md border border-white/10 bg-white/[0.04] p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-sm font-medium text-white/75">AI story quality scan</span>
+                    <span className="text-sm text-[#7ee7c5]">94%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[94%] rounded-full bg-[#7ee7c5]" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <div className="rounded-md border border-[#0a2540]/10 bg-[#f6f9fc] p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#0a2540]">
+                    <BrainCircuit className="h-4 w-4 text-[#00a6a6]" />
+                    Recommended owner
+                  </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-xl font-semibold">Aditya</p>
+                      <p className="text-sm text-[#6b7c93]">Next.js, Tailwind, responsive systems</p>
+                    </div>
+                    <BadgeCheck className="h-8 w-8 text-[#00a6a6]" />
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-[#0a2540]/10 bg-white p-4">
+                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                    <LineChart className="h-4 w-4 text-[#f59e0b]" />
+                    Estimation agreement
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-md bg-[#fff7ea] p-3">
+                      <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#8a6a21]">Developer</p>
+                      <p className="mt-2 text-2xl font-semibold">5 pts</p>
+                    </div>
+                    <div className="rounded-md bg-[#eef7f2] p-3">
+                      <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#2f6f5e]">Lead</p>
+                      <p className="mt-2 text-2xl font-semibold">5 pts</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-[#0a2540]/10 bg-white p-4">
+                  <p className="mb-3 text-sm font-semibold">Readiness signals</p>
+                  <div className="grid gap-2">
+                    {signals.map((signal) => (
+                      <div key={signal} className="flex items-center justify-between text-sm text-[#425466]">
+                        <span>{signal}</span>
+                        <Check className="h-4 w-4 text-[#00a66f]" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* Transition Text */}
-      <div className="text-center px-6 py-12">
-        <h2 className="text-2xl font-bold text-indigo-800">🧠 Built with Gemini AI for unmatched task intelligence</h2>
-        <p className="text-lg text-gray-700 mt-2">
-          From parsing unstructured content to assigning the perfect owner—let <strong>Gen AI</strong> do the hard stuff.
-        </p>
-      </div>
+      <section className="border-y border-[#0a2540]/10 bg-white px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#00a6a6]">From context to commitment</p>
+            <h2 className="mt-3 max-w-xl text-4xl font-semibold leading-tight text-[#0a2540]">A planning workflow that removes the blank page.</h2>
+            <p className="mt-5 max-w-lg text-lg leading-8 text-[#425466]">
+              The page is built around one promise: give TaskTrack your source material, and leave with work your team can size, assign, and ship.
+            </p>
+          </div>
 
-      {/* How It Works */}
-      <section className="px-6 py-24 text-center bg-white">
-        <h2 className="text-4xl font-bold mb-6">How It Works</h2>
-        <p className="max-w-2xl mx-auto text-gray-600 mb-12 text-lg">
-          Simplify your workflow from raw ideas to perfectly delegated and sized tasks—TaskTrain and <strong>Gen AI</strong> handle the heavy lifting.
-        </p>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
-          {[
-            "Input raw task, idea or doc",
-            "Gemini AI parses, estimates, and breaks it down",
-            "Auto-assigned to best-fit teammate with full clarity",
-          ].map((step, idx) => (
-            <div
-              key={idx}
-              className="bg-indigo-100 p-8 rounded-xl border border-indigo-200"
-            >
-              <h4 className="text-xl font-semibold text-indigo-800 mb-3">Step {idx + 1}</h4>
-              <p className="text-indigo-900 text-base">{step}</p>
-            </div>
-          ))}
+          <div className="grid gap-4 md:grid-cols-3">
+            {workflow.map((item) => {
+              const Icon = item.icon;
+              return (
+                <article key={item.title} className="rounded-lg border border-[#0a2540]/10 bg-[#f7f8fb] p-5 shadow-sm">
+                  <div className="mb-5 grid h-10 w-10 place-items-center rounded-lg bg-white shadow-sm">
+                    <Icon className="h-5 w-5 text-[#635bff]" />
+                  </div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#6b7c93]">{item.label}</p>
+                  <h3 className="mt-2 text-xl font-semibold text-[#0a2540]">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#425466]">{item.body}</p>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* Transition Text */}
-      <div className="text-center px-6 py-12">
-        <h2 className="text-2xl font-bold text-indigo-800">🚀 Your workflow, elevated by Gen AI</h2>
-        <p className="text-lg text-gray-700 mt-2">
-          From chaos to clarity—TaskTrain transforms your product operations with elegance and <strong>AI speed</strong>.
-        </p>
-      </div>
-
-      {/* Use Cases */}
-      <section className="px-6 py-24 bg-gray-50 text-center">
-        <h2 className="text-4xl font-bold mb-6">Built For Modern Teams</h2>
-        <p className="max-w-2xl mx-auto text-gray-600 mb-12 text-lg">
-          TaskTrain is designed to integrate into the natural rhythm of all your product, engineering, and leadership workflows—with <strong>AI insight</strong> baked in.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-          {["Startup PMs", "Scrum Teams", "Enterprise Leads"].map((role, idx) => (
-            <div
-              key={idx}
-              className="bg-white border border-gray-200 p-8 rounded-2xl shadow-sm hover:shadow-md transition"
-            >
-              <h3 className="text-xl font-semibold mb-3">{role}</h3>
-              <p className="text-base text-gray-600">
-                TaskTrain adapts to your scale—be it quick iteration or enterprise process.
-              </p>
+      <section className="bg-[#0a2540] px-4 py-16 text-white sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_0.85fr] lg:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#7ee7c5]">Conversion focus</p>
+            <h2 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight">One CTA, one job: start the planning run.</h2>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-white/70">
+              The landing page now centers the product’s highest-intent action, reinforces outcomes with proof, and shows a concrete preview of what the AI produces.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild className="h-12 rounded-lg bg-white px-6 text-base font-semibold text-[#0a2540] hover:bg-white/90">
+                <Link href="/generate-prd">
+                  Start from a document
+                  <Zap className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-12 rounded-lg border-white/20 bg-transparent px-6 text-base font-semibold text-white hover:bg-white/10 hover:text-white">
+                <Link href="/dashboard">View dashboard</Link>
+              </Button>
             </div>
-          ))}
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
+            <div className="mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#7ee7c5]/15">
+                  <ShieldCheck className="h-5 w-5 text-[#7ee7c5]" />
+                </div>
+                <div>
+                  <p className="font-semibold">Best fit for</p>
+                  <p className="text-sm text-white/55">Teams that need usable plans fast</p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {useCases.map((item) => (
+                <div key={item} className="flex items-start gap-3 rounded-md bg-white/[0.05] p-3 text-sm text-white/78">
+                  <ClipboardList className="mt-0.5 h-4 w-4 shrink-0 text-[#7ee7c5]" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Transition Text */}
-      <div className="text-center px-6 py-12">
-        <h2 className="text-2xl font-bold text-indigo-800">⚙️ Frictionless onboarding. Maximum ROI.</h2>
-        <p className="text-lg text-gray-700 mt-2">
-          Start today, feel the clarity by tomorrow. Powered by <strong>Gen AI</strong>, TaskTrain requires no training to get going.
-        </p>
-      </div>
-
-      {/* Final CTA */}
-      <section className="px-6 py-24 text-center bg-indigo-50">
-        <h2 className="text-4xl font-bold mb-4">Let TaskTrain handle the busywork</h2>
-        <p className="text-lg mb-8 max-w-xl mx-auto text-gray-700">
-          Your team’s time is precious. Give them clarity, speed, and <strong>AI-powered momentum</strong> today.
-        </p>
-        <Button
-          size="lg"
-          className="bg-indigo-600 hover:bg-indigo-700 hover:scale-110 text-white font-semibold text-lg rounded-full px-10 py-5 shadow-lg"
-        >
-          Get Started
-          <span className="ml-2">
-            <ArrowRight className="w-5 h-5" />
-          </span>
-        </Button>
+      <section className="bg-white px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 border-t border-[#0a2540]/10 pt-12 md:flex-row md:items-center">
+          <div>
+            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-[#6b7c93]">
+              <Layers3 className="h-4 w-4" />
+              TaskTrack
+            </p>
+            <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight text-[#0a2540]">Move from product ambiguity to a Jira-ready sprint plan.</h2>
+          </div>
+          <Button asChild className="h-12 rounded-lg bg-[#0a2540] px-6 text-base font-semibold text-white hover:bg-[#173b5c]">
+            <Link href="/generate-prd">
+              Generate your first plan
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </section>
-
-      {/* Footer */}
-      <footer className="px-6 py-10 text-center text-sm text-gray-500 bg-white border-t">
-        © {new Date().getFullYear()} TaskTrain. Move faster. Stay aligned with Gen AI.
-      </footer>
-    </div>
+    </main>
   );
 }
