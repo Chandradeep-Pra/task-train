@@ -1,18 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Topbar from "@/components/Topbar";
 import { Toaster } from "react-hot-toast";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const spaceGT = Space_Grotesk({
-  variable: "--font-spaceGT",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Tasktrack",
@@ -26,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${spaceGT.variable} antialiased`}>
+      <body className="antialiased">
         <Topbar />
         <Toaster
   position="top-right"
