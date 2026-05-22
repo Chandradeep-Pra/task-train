@@ -1,175 +1,151 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Sparkle } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { FileWarning } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import PRDReview from "@/components/PRDReview";
-import { SparkInputField } from "@/components/SparkInputFiled";
+import { CreateTaskSidebar } from "@/components/create-task/CreateTaskSidebar";
+import { EditablePrdSection } from "@/components/create-task/EditablePrdSection";
+import { PlanningPanel } from "@/components/create-task/PlanningPanel";
+import { getSectionValue, parseSectionValue, prdSections } from "@/components/create-task/sections";
+import type { PrdDocument } from "@/components/create-task/types";
 
-export default function GeneratePRDPage() {
-  const [prdText, setPrdText] = useState<any>(null); // full structured PRD object
+export default function CreateTaskPage() {
+  const [prdText, setPrdText] = useState<PrdDocument | null>(null);
   const [duration, setDuration] = useState("");
   const [resourceSize, setResourceSize] = useState("");
   const [loading, setLoading] = useState(false);
-
   const router = useRouter();
 
-  // Load PRD data from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("prdData");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setPrdText(parsed.prd_document || {});
-        setDuration(parsed.total_sprints_discussed || "");
-        setResourceSize(
-          parsed.employees_mentioned || parsed.total_employees_mentioned || ""
-        );
-      } catch (e) {
-        console.error("Failed to parse PRD from localStorage:", e);
-      }
+    if (!saved) return;
+
+    try {
+      const parsed = JSON.parse(saved);
+      setPrdText(parsed.prd_document || {});
+      setDuration(String(parsed.total_sprints_discussed || ""));
+      setResourceSize(String(parsed.employees_mentioned || parsed.total_employees_mentioned || ""));
+    } catch {
+      toast.error("Could not read the saved PRD.");
     }
   }, []);
 
+  useEffect(() => {
+    if (!prdText) return;
+    const saved = localStorage.getItem("prdData");
+    const parsed = saved ? JSON.parse(saved) : {};
+    localStorage.setItem("prdData", JSON.stringify({ ...parsed, prd_document: prdText }));
+  }, [prdText]);
+
+  const sectionValues = useMemo(() => {
+    return prdSections.reduce<Record<string, string>>((acc, section) => {
+      acc[section.key] = getSectionValue(prdText?.[section.key]);
+      return acc;
+    }, {});
+  }, [prdText]);
+
+  const updateSection = (key: string, value: string) => {
+    const section = prdSections.find((item) => item.key === key);
+    setPrdText((current) => ({
+      ...(current || {}),
+      [key]: parseSectionValue(value, section?.list),
+    }));
+  };
+
+  const estimate = async (endpoint: string, fallback: string, onValue: (value: string) => void) => {
+    if (!prdText) return;
+    const toastId = toast.loading("Asking AI for an estimate...");
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prd_document: JSON.stringify(prdText) }),
+      });
+      const data = await response.json();
+      onValue(String(data.estimate || fallback || ""));
+      toast.success(data.reason || "Estimate updated.", { id: toastId });
+    } catch {
+      toast.error("AI estimation failed. Please try again.", { id: toastId });
+    }
+  };
+
   const handleContinue = async () => {
     if (!prdText) return;
-
-    // console.log('PRD Text:', prdText.stringify());
-    const payload = {
-      prd_document: JSON.stringify(prdText),
-      // transcription: transcript.trim?.() || '',
-      num_sprints: duration || "2",
-    };
+    const toastId = toast.loading("Generating sprint tickets...");
 
     try {
       setLoading(true);
-
       const response = await fetch("/api/get-task", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          prd_document: JSON.stringify(prdText),
+          num_sprints: duration || "2",
+        }),
       });
-
       const result = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem("assigned-tasks", JSON.stringify(result));
-        window.location.href = "/create-tkt"; // OR router.push('/create-task');
-      } else {
-        console.error("Failed to continue:", result);
-      }
-    } catch (err) {
-      console.error("Error continuing to task creation:", err);
+      if (!response.ok) throw new Error(result?.error || "Failed to generate tickets.");
+      localStorage.setItem("assigned-tasks", JSON.stringify(result));
+      toast.success("Tickets are ready. Opening sprint workspace...", { id: toastId });
+      router.push("/create-tkt");
+    } catch {
+      toast.error("Could not generate tickets. Please try again.", { id: toastId });
     } finally {
       setLoading(false);
     }
   };
 
+  if (!prdText) {
+    return (
+      <main className="flex h-[calc(100vh-65px)] items-center justify-center bg-[var(--tt-shell)] px-4 text-[var(--tt-text)]">
+        <div className="max-w-md rounded-lg border border-[var(--tt-border)] bg-[var(--tt-surface)] p-6 text-center shadow-[var(--tt-shadow-soft)]">
+          <FileWarning className="mx-auto h-10 w-10 text-[var(--tt-text-muted)]" />
+          <h1 className="mt-4 text-xl font-semibold">No PRD found</h1>
+          <p className="mt-2 text-sm leading-6 text-[var(--tt-text-muted)]">Generate a PRD first, then return here to review and create sprint tickets.</p>
+          <Button onClick={() => router.push("/generate-prd")} className="mt-5 rounded-lg bg-[var(--tt-brand)] text-white hover:bg-[var(--tt-brand-strong)]">
+            Generate PRD
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">📄 PRD Review</h1>
+    <main className="flex h-[calc(100vh-65px)] flex-col overflow-hidden bg-[var(--tt-shell)] text-[var(--tt-text)] lg:flex-row">
+      <CreateTaskSidebar sections={prdSections} />
 
-      {!prdText ? (
-        <p className="text-zinc-500 text-center">
-          No PRD found. Please generate one first.
-        </p>
-      ) : (
-        <>
-          <div className="mb-10">
-            <h2 className="text-xl font-semibold mb-4">
-              Generated Product Requirements
-            </h2>
-            <PRDReview prdText={prdText} />
+      <section className="min-w-0 flex-1 overflow-y-auto p-5 scrollbar-thin">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-5 rounded-lg border border-[var(--tt-border)] bg-[var(--tt-surface)] p-5 shadow-[var(--tt-shadow-soft)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--tt-brand)]">Create task</p>
+            <h1 className="mt-2 text-2xl font-semibold">Review PRD and prepare sprint tickets</h1>
+            <p className="mt-2 text-sm leading-6 text-[var(--tt-text-muted)]">
+              Edit the generated product requirements before TaskTrack converts them into team-ready tickets.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <SparkInputField
-              label="Duration of Project (Sprints)"
-              value={duration}
-              onChange={setDuration}
-              placeholder="e.g. 2"
-              showButton
-              onAIClick={async () => {
-                try {
-                  // const prdText = localStorage.getItem("prd-text") ?? "";
-                  const response = await fetch("/api/get-ai-sprint-estimate", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      prd_document: JSON.stringify(prdText),
-                    }),
-                  });
-
-                  const data = await response.json();
-                  console.log("AI Sprint Estimate Response:", data);
-
-                  return {
-                    value: data.estimate,
-                    reason: data.reason,
-                  };
-                } catch (error) {
-                  console.error("AI sprint estimate error:", error);
-                  return {
-                    value: duration,
-                    reason: "AI estimation failed. Please try again.",
-                  };
-                }
-              }}
-            />
-
-            <SparkInputField
-              label="Team Size (Total Employees)"
-              value={resourceSize}
-              onChange={setResourceSize}
-              placeholder="e.g. 5"
-              showButton
-              onAIClick={async () => {
-                try {
-                  // const prdText = localStorage.getItem("prd-text") ?? "";
-                  const response = await fetch("/api/get-ai-employee-estimate", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      prd_document: JSON.stringify(prdText),
-                    }),
-                  });
-
-                  const data = await response.json();
-                  console.log("AI Employee Estimate Response:", data);
-
-                  return {
-                    value: data.estimate,
-                    reason: data.reason,
-                  };
-                } catch (error) {
-                  console.error("AI employee estimate error:", error);
-                  return {
-                    value: duration,
-                    reason: "AI estimation failed. Please try again.",
-                  };
-                }
-              }}
-            />
+          <div className="space-y-4 pb-8">
+            {prdSections.map((section) => (
+              <EditablePrdSection key={section.key} section={section} value={sectionValues[section.key]} onChange={(value) => updateSection(section.key, value)} />
+            ))}
           </div>
+        </div>
+      </section>
 
-          <div className="text-center">
-            <Button
-              onClick={handleContinue}
-              disabled={loading}
-              className="w-full sm:w-auto px-6 py-3 text-white bg-black hover:bg-zinc-900 rounded-full flex items-center justify-center gap-2"
-            >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Continue to Create Task
-            </Button>
-          </div>
-        </>
-      )}
-    </div>
+      <PlanningPanel
+        duration={duration}
+        resourceSize={resourceSize}
+        loading={loading}
+        onDurationChange={setDuration}
+        onResourceSizeChange={setResourceSize}
+        onEstimateSprints={() => estimate("/api/get-ai-sprint-estimate", duration, setDuration)}
+        onEstimateTeam={() => estimate("/api/get-ai-employee-estimate", resourceSize, setResourceSize)}
+        onContinue={handleContinue}
+      />
+    </main>
   );
 }
